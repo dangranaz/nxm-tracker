@@ -1,9 +1,34 @@
+<div align="center">
+
 # nxm-tracker
 
-Tracker for long, multi-day work sessions and the integrated feature sessions created
-after the design phase.
+<!-- Licensed MIT — part of the nxm tooling. -->
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-1.75%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![MCP](https://img.shields.io/badge/MCP-JSON--RPC%20stdio-5A4FCF)](#mcp-configuration)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue)](CHANGELOG.md)
 
-Part of the NXM platform.
+**Tracker for long, multi-day work sessions — part of the NXM platform**
+
+<br>
+
+<picture>
+  <source srcset="docs/assets/nexum-banner.webp" type="image/webp">
+  <img src="docs/assets/nexum-banner.png" alt="Nexum-AI banner" width="1000" height="553">
+</picture>
+
+<br>
+
+`nxm-tracker` keeps track of work sessions that span several days and are used to
+generate and test code. After the design phase, integrated feature sessions are
+created so the work can be managed correctly across days.
+
+- **Repo:** session-tracking crate for the NXM platform
+- **Current state:** scaffold only — no session-tracking logic, database or MCP tools
+  implemented yet
+- **Public API:** `product_name()` returns the canonical product name
+
+</div>
 
 ## Purpose
 
@@ -26,3 +51,7 @@ cargo fmt --all -- --check
 ```
 
 The mandatory engineering rules live in `.pi/rules/` and are summarised in `AGENTS.md`.
+
+## License
+
+Open source, **MIT** license ([LICENSE](LICENSE)).
