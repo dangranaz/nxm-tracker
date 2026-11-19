@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![MCP](https://img.shields.io/badge/MCP-JSON--RPC%20stdio-5A4FCF)](#mcp-configuration)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue)](CHANGELOG.md)
 
 **Tracker for long, multi-day work sessions — part of the NXM platform**
 
@@ -23,10 +23,15 @@
 generate and test code. After the design phase, integrated feature sessions are
 created so the work can be managed correctly across days.
 
+Configuration is provided by [`nxm-config`](https://github.com/dangranaz/nxm-config)
+(develop branch).
+
 - **Repo:** session-tracking crate for the NXM platform
+- **Configuration:** [`nxm-config`](https://github.com/dangranaz/nxm-config) —
+  `ConfigPaths`, `GeneralConfig`, env overrides (`NXM_*`)
 - **Current state:** scaffold only — no session-tracking logic, database or MCP tools
   implemented yet
-- **Public API:** `product_name()` returns the canonical product name
+- **Public API:** `product_name()`, `TrackerConfig`, `TrackerError`
 
 </div>
 
@@ -39,7 +44,28 @@ feature sessions are created so the work can be managed correctly across days.
 ## Status
 
 **Scaffold only.** No session-tracking logic, database or MCP tools are implemented yet.
-The current public API is `product_name()`, which returns the canonical product name.
+Configuration is handled by `nxm-config`; the public API is `product_name()`,
+`TrackerConfig`, and `TrackerError`.
+
+## Configuration
+
+`nxm-tracker` uses [`nxm-config`](https://github.com/dangranaz/nxm-config) for
+configuration discovery, loading, and saving.
+
+- Config root: `NXM_CONFIG_HOME` or `~/.nxmconfig`
+- Config file: `config.toml`
+- Environment overrides: `NXM_SERVER_HOST`, `NXM_SERVER_PORT`, `NXM_DATABASE_DRIVER`,
+  `NXM_DATABASE_URL`, `NXM_CORS_ORIGINS`
+
+Example:
+
+```rust
+use nxm_tracker::TrackerConfig;
+
+let config = TrackerConfig::load()?;
+println!("server port: {}", config.server_port());
+println!("database url: {}", config.database_url());
+```
 
 ## Development
 

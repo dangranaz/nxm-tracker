@@ -1,0 +1,9 @@
+use thiserror::Error;
+
+/// Errors produced by the nxm-tracker crate.
+#[derive(Debug, Error)]
+pub enum TrackerError {
+    /// Wraps an [`nxm_config::ConfigError`] from configuration loading/saving.
+    #[error("configuration error: {0}")]
+    Config(#[from] nxm_config::ConfigError),
+}

@@ -7,11 +7,17 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 ## Current state
 
-- Minimal standalone crate: `Cargo.toml` with the standard build profiles, a library
-  (`src/lib.rs`) and a binary (`src/main.rs`).
-- The only public API is `product_name() -> &'static str`, documented with an example and
-  structured `tracing` logging. The binary prints the product name and version.
-- Smoke tests live in `tests/lib_test.rs` and verify the canonical binary name.
+- Standalone crate with `nxm-config` (`../../shared/nxm-config`, v0.2.0) as a path dependency
+  for configuration management.
+- Public API:
+  - `product_name() -> &'static str` — canonical product name
+  - `TrackerConfig` — wrapper around `nxm_config::GeneralConfig` with `load()`,
+    `load_or_create_from()`, `load_from()`, `save()`, `save_to()`, `server_port()`,
+    `database_url()`, `database_driver()` accessors
+  - `TrackerError` — wraps `nxm_config::ConfigError`
+- Binary prints product name, version, server port, database URL, and driver.
+- Tests in `tests/config_test.rs` (config integration) and `tests/lib_test.rs`
+  (product name smoke tests).
 
 ## Next increment
 
