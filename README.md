@@ -13,8 +13,8 @@
 <br>
 
 <picture>
-  <source srcset="docs/assets/nexum-banner.webp" type="image/webp">
-  <img src="docs/assets/nexum-banner.png" alt="Nexum-AI banner" width="1000" height="553">
+  <source srcset="docs/assets/nexum-banner.webp?v=2" type="image/webp">
+  <img src="docs/assets/nexum-banner.png?v=2" alt="Nexum-AI banner" width="1000" height="553">
 </picture>
 
 <br>
