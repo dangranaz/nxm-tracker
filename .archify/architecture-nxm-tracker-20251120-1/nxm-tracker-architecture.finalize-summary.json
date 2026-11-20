@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/home/daniele/AiProjects/nexum/mcpServers/nxm-tracker/.archify/architecture-nxm-tracker-20251120-1/candidate.json",
+    "sha256": "7956ffb3c04a1fbc1c22e941df4fedaf16d9558c4c6e4e53ce427ad63826a345",
+    "bytes": 3042
+  },
+  "artifact": {
+    "path": "/home/daniele/AiProjects/nexum/mcpServers/nxm-tracker/.archify/architecture-nxm-tracker-20251120-1/nxm-tracker-architecture.html",
+    "sha256": "03ca7d252055a62a53be0d9e1950176cb468555af7dc98f6c4b60011c110f434",
+    "bytes": 844915
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/home/daniele/AiProjects/nexum/mcpServers/nxm-tracker/.archify/architecture-nxm-tracker-20251120-1/nxm-tracker-architecture.finalize.json",
+    "summaryReceipt": "/home/daniele/AiProjects/nexum/mcpServers/nxm-tracker/.archify/architecture-nxm-tracker-20251120-1/nxm-tracker-architecture.finalize-summary.json",
+    "browserCheckReceipt": "/home/daniele/AiProjects/nexum/mcpServers/nxm-tracker/.archify/architecture-nxm-tracker-20251120-1/nxm-tracker-architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-19T14:48:13.733Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4532,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "routesOverSuggestedBends": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [],
+      "detours": [
+        {
+          "relationship": {
+            "id": "lib-to-logging",
+            "from": "lib",
+            "to": "logging",
+            "label": "exposes init_logging()",
+            "collectionIndex": 2,
+            "artifactIndex": 3
+          },
+          "bends": 3,
+          "stretch": 1.247
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "lib has 4 relationships facing its right side, which fits 3 ports: make that side at least 74px, or move some of those neighbours so they face another side of lib.",
+      "lib → logging needs 3 bends: move node lib or logging so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

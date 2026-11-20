@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "nxm-tracker Architecture",
+    "output": "nxm-tracker-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "main", "type": "backend", "label": "nxm-tracker binary", "sublabel": "src/main.rs", "pos": [40, 300], "size": [150, 60] },
+    { "id": "lib", "type": "backend", "label": "nxm_tracker crate", "sublabel": "src/lib.rs", "pos": [280, 300], "size": [150, 60] },
+    { "id": "config", "type": "backend", "label": "TrackerConfig", "sublabel": "src/config.rs", "pos": [520, 160], "size": [140, 60] },
+    { "id": "logging", "type": "backend", "label": "init_logging()", "sublabel": "src/logging.rs", "pos": [520, 300], "size": [140, 60] },
+    { "id": "error", "type": "backend", "label": "TrackerError", "sublabel": "src/error.rs", "pos": [520, 440], "size": [140, 60] },
+    { "id": "nxm_config", "type": "external", "label": "nxm-config", "sublabel": "shared crate", "pos": [760, 160], "size": [130, 60] },
+    { "id": "nxm_logging", "type": "external", "label": "nxm-logging", "sublabel": "shared crate", "pos": [760, 300], "size": [130, 60] },
+    { "id": "tracing", "type": "external", "label": "tracing", "sublabel": "logging facade", "pos": [760, 440], "size": [130, 60] },
+    { "id": "thiserror", "type": "external", "label": "thiserror", "sublabel": "error derive", "pos": [760, 520], "size": [130, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "nxm-tracker crate", "wraps": ["lib", "config", "logging", "error"] },
+    { "kind": "region", "label": "external dependencies", "wraps": ["nxm_config", "nxm_logging", "tracing", "thiserror"] }
+  ],
+  "connections": [
+    { "id": "main-to-lib", "from": "main", "to": "lib", "label": "entry point" },
+    { "id": "lib-to-config", "from": "lib", "to": "config", "label": "exposes TrackerConfig" },
+    { "id": "lib-to-logging", "from": "lib", "to": "logging", "label": "exposes init_logging()" },
+    { "id": "lib-to-error", "from": "lib", "to": "error", "label": "exposes TrackerError" },
+    { "id": "config-to-nxm-config", "from": "config", "to": "nxm_config", "label": "uses ConfigPaths, GeneralConfig" },
+    { "id": "logging-to-nxm-logging", "from": "logging", "to": "nxm_logging", "label": "wraps init_product_logging()" },
+    { "id": "lib-to-tracing", "from": "lib", "to": "tracing", "label": "debug/info/error events" },
+    { "id": "error-to-thiserror", "from": "error", "to": "thiserror", "label": "derive(Error)" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Entry", "items": ["Binary starts logging, then loads configuration"] },
+    { "dot": "emerald", "title": "Configuration", "items": ["TrackerConfig wraps nxm_config::GeneralConfig", "Loads from ~/.nxmconfig or NXM_CONFIG_HOME"] },
+    { "dot": "rose", "title": "Logging", "items": ["JSON logs to ~/.nxmconfig/logs/nxm-tracker.log", "First-wins global subscriber"] },
+    { "dot": "violet", "title": "Errors", "items": ["TrackerError wraps Config and Logging errors"] }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "f51c4116-9e1c-40e0-880f-d8a6f0f07f6f",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/home/daniele/AiProjects/nexum/mcpServers/nxm-tracker/.archify/architecture-nxm-tracker-20251120-1/candidate.json",
+  "output": "/home/daniele/AiProjects/nexum/mcpServers/nxm-tracker/.archify/architecture-nxm-tracker-20251120-1/nxm-tracker-architecture.html",
+  "specification": {
+    "sha256": "7956ffb3c04a1fbc1c22e941df4fedaf16d9558c4c6e4e53ce427ad63826a345",
+    "bytes": 3042
+  },
+  "artifact": {
+    "sha256": "03ca7d252055a62a53be0d9e1950176cb468555af7dc98f6c4b60011c110f434",
+    "bytes": 844915
+  }
+}

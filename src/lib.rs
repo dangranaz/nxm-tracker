@@ -1,7 +1,19 @@
 //! `nxm_tracker` — tracks long, multi-day work sessions and the integrated
 //! feature sessions created after the design phase.
 //!
-//! Business logic is not implemented yet: this is the minimal scaffold.
+//! Uses [`nxm-config`](nxm_config) for configuration management,
+//! [`nxm-logging`](nxm_logging) for structured logging, and
+//! [`nxm-db`](nxm_db) for datasource access.
+
+mod config;
+mod database;
+mod error;
+mod logging;
+
+pub use config::TrackerConfig;
+pub use database::{default_migration_set, Database};
+pub use error::TrackerError;
+pub use logging::init_logging;
 
 /// Returns the canonical product name of this crate.
 ///
