@@ -6,4 +6,7 @@ pub enum TrackerError {
     /// Wraps an [`nxm_config::ConfigError`] from configuration loading/saving.
     #[error("configuration error: {0}")]
     Config(#[from] nxm_config::ConfigError),
+    /// Wraps an [`nxm_logging::LoggingError`] from logging initialization.
+    #[error("logging error: {0}")]
+    Logging(#[from] nxm_logging::LoggingError),
 }

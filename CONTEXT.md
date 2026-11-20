@@ -7,17 +7,20 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 ## Current state
 
-- Standalone crate with `nxm-config` (`../../shared/nxm-config`, v0.2.0) as a path dependency
-  for configuration management.
+- Standalone crate with path dependencies:
+  - `nxm-config` (`../../shared/nxm-config`, v0.2.0) for configuration management
+  - `nxm-logging` (`../../shared/nxm-logging`, v0.2.0) for structured logging
 - Public API:
   - `product_name() -> &'static str` — canonical product name
   - `TrackerConfig` — wrapper around `nxm_config::GeneralConfig` with `load()`,
     `load_or_create_from()`, `load_from()`, `save()`, `save_to()`, `server_port()`,
     `database_url()`, `database_driver()` accessors
-  - `TrackerError` — wraps `nxm_config::ConfigError`
-- Binary prints product name, version, server port, database URL, and driver.
-- Tests in `tests/config_test.rs` (config integration) and `tests/lib_test.rs`
-  (product name smoke tests).
+  - `init_logging() -> Result<(), TrackerError>` — initializes structured logging
+    (JSON to `~/.nxmconfig/logs/nxm-tracker.log` + stderr)
+  - `TrackerError` — wraps `nxm_config::ConfigError` and `nxm_logging::LoggingError`
+- Binary initializes logging, then loads and prints configuration.
+- Tests in `tests/config_test.rs` (config integration), `tests/logging_test.rs`
+  (logging integration), and `tests/lib_test.rs` (product name smoke tests).
 
 ## Next increment
 

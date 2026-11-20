@@ -1,13 +1,16 @@
 //! `nxm_tracker` — tracks long, multi-day work sessions and the integrated
 //! feature sessions created after the design phase.
 //!
-//! Uses [`nxm-config`](nxm_config) for configuration management.
+//! Uses [`nxm-config`](nxm_config) for configuration management and
+//! [`nxm-logging`](nxm_logging) for structured logging.
 
 mod config;
 mod error;
+mod logging;
 
 pub use config::TrackerConfig;
 pub use error::TrackerError;
+pub use logging::init_logging;
 
 /// Returns the canonical product name of this crate.
 ///
