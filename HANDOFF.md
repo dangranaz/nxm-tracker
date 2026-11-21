@@ -11,13 +11,14 @@ del lavoro svolto e di quanto resta da implementare.
 |-------|--------|
 | **Crate** | `nxm_tracker` |
 | **Versione** | `0.7.1` |
+| **Ultimo commit** | `c075b02` — docs(tracker): document session states |
+| **Ultimo tag** | `v0.7.1` su entrambi i remote |
+| **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.1 |
 | **Posizione locale** | `~/AiProjects/nexum/mcpServers/nxm-tracker` |
 | **Copia pubblicazione** | `~/AiProjects/dangranaz/nxm-tracker` |
 | **Remote GitHub** | `dangranaz/nxm-tracker` (public) |
 | **Remote GitLab** | `nxmAiDevelop/nxmMcpServers/nxm-tracker` (public, utente `granata.phoenix`) |
 | **Licenza** | PolyForm Noncommercial 1.0.0 (`LICENSE.md`) |
-| **Ultimo tag** | `v0.5.0` su entrambi i remote |
-| **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.5.0 |
 
 ---
 
@@ -152,6 +153,8 @@ nxm-tracker/
 
 2. **Espandere repository pattern** — `SqliteSessionRepository` è già implementato; eventualmente aggiungere ulteriori operazioni query o altri backend.
 3. **Verificare il file `LICENSE`** (senza estensione) se richiesto da qualche tool di terze parti.
+
+Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale e pianificazione futura (v0.8.0, v0.9.0, v1.0.0, post-v1.0).
 
 ---
 

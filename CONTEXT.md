@@ -60,3 +60,6 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 Espandere repository pattern con ulteriori operazioni query se necessario; verificare
 file `LICENSE` senza estensione; aggiungere esempi d'uso in `docs/examples/`.
+
+Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale e
+pianificazione futura (v0.8.0, v0.9.0, v1.0.0, post-v1.0).
