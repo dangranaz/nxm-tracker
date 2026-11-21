@@ -11,6 +11,10 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
   - `nxm-config` (`../../shared/nxm-config`, v0.2.0) for configuration management
   - `nxm-logging` (`../../shared/nxm-logging`, v0.2.0) for structured logging
   - `nxm-db` (`../../shared/nxm-db`, v0.2.0) for datasource access (SQLite)
+  - `sqlx` (0.9, sqlite + runtime-tokio) for SQL queries on the `nxm-db` pool
+  - `chrono` (0.4) for RFC3339 timestamps
+  - `serde` (1, derive) for serialization
+  - `tokio` (1, rt) for blocking async sqlx calls in sync context
 - Public API:
   - `product_name() -> &'static str` — canonical product name
   - `TrackerConfig` — wrapper around `nxm_config::GeneralConfig` with `load()`,
@@ -20,13 +24,22 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
     (JSON to `~/.nxmconfig/logs/nxm-tracker.log` + stderr)
   - `Database` — wrapper around `nxm_db::Db` with `open()`, `open_from()`,
     `migrate()`, `handle()` accessors
-  - `default_migration_set()` — migration set with `create_sessions` table
+  - `default_migration_set()` — migration set with `create_sessions` (v1) and
+    `create_feature_sessions` (v2) tables
   - `TrackerError` — wraps `nxm_config::ConfigError`, `nxm_logging::LoggingError`,
-    and `nxm_db::DbError`
+    `nxm_db::DbError`, plus `InvalidSessionStatus`
+  - `Session` — work session (`id`, `name`, `started_at`, `ended_at`, `status`,
+    `design_phase_complete`)
+  - `SessionStatus` — `open`, `paused`, `closed`
+  - `FeatureSession` — integrated feature session post-design phase
+  - `NewSession`, `NewFeatureSession` — creation input structs
+  - `SessionRepository` — trait for session/feature session persistence
+  - `SqliteSessionRepository` — SQLite implementation on `nxm-db` pool
 - Binary initializes logging, loads configuration, opens database, and applies migrations.
 - Tests in `tests/config_test.rs` (config integration), `tests/logging_test.rs`
-  (logging integration), `tests/database_test.rs` (database integration), and
-  `tests/lib_test.rs` (product name smoke tests).
+  (logging integration), `tests/database_test.rs` (database integration),
+  `tests/lib_test.rs` (product name smoke tests), and
+  `tests/session_test.rs` (session model integration, 11 tests).
 
 ## Project layout
 
@@ -38,6 +51,7 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 ## Next increment
 
-Implement the session model: long-running work sessions spanning multiple days, their
-state, and the integrated feature sessions generated after the design phase. Track
-tests separately in `tests/` and keep every production file under 300 lines.
+Rigenerare il diagramma Archify includendo `nxm-db`; popolare `docs/` (API,
+architettura, esempi d'uso); implementare i tool MCP; aggiungere repository pattern
+sopra `nxm-db` per il CRUD sulle sessioni (già parzialmente fatto con
+`SqliteSessionRepository`).

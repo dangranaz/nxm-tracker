@@ -1,5 +1,17 @@
 # Changelog for nxm-tracker
 
+## 0.6.0 - 2026-11-21
+
+- feat(tracker): implement session model
+  - add `Session` with `id`, `name`, `started_at`, `ended_at`, `status`, `design_phase_complete`
+  - add `SessionStatus` enum (`open`, `paused`, `closed`) with DB string mapping
+  - add `FeatureSession` for integrated feature sessions created after the design phase
+  - add `SessionRepository` trait + `SqliteSessionRepository` implementation on `nxm-db`
+  - add migration v2: `create_feature_sessions` table with FK to `sessions`
+  - add `TrackerError::InvalidSessionStatus` for unknown status strings
+  - add 11 integration tests in `tests/session_test.rs`
+  - add `sqlx`, `chrono`, `serde`, `tokio` dependencies
+
 ## 0.5.0 - 2026-11-20
 
 - fix(tracker): change license from MIT to PolyForm Noncommercial 1.0.0

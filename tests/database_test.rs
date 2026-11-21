@@ -49,9 +49,11 @@ fn database_migration_set_applies() {
 }
 
 #[test]
-fn default_migration_set_has_one_migration() {
+fn default_migration_set_has_two_migrations() {
     let set = default_migration_set().expect("default migration set should be valid");
-    assert_eq!(set.migrations().len(), 1);
+    assert_eq!(set.migrations().len(), 2);
     assert_eq!(set.migrations()[0].version, 1);
     assert_eq!(set.migrations()[0].name, "create_sessions");
+    assert_eq!(set.migrations()[1].version, 2);
+    assert_eq!(set.migrations()[1].name, "create_feature_sessions");
 }

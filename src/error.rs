@@ -12,4 +12,7 @@ pub enum TrackerError {
     /// Wraps an [`nxm_db::DbError`] from database access.
     #[error("database error: {0}")]
     Database(#[from] nxm_db::DbError),
+    /// The session status string stored in the database is not recognized.
+    #[error("invalid session status: {0}")]
+    InvalidSessionStatus(String),
 }

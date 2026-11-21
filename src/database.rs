@@ -43,12 +43,15 @@ impl Database {
 
 /// Default migration set for `nxm-tracker` session tracking.
 ///
-/// Creates the `sessions` table used to track long, multi-day work sessions.
+/// Creates the `sessions` table used to track long, multi-day work sessions
+/// and the `feature_sessions` table for integrated feature sessions created
+/// after the design phase.
 pub fn default_migration_set() -> Result<MigrationSet, TrackerError> {
-    let migrations = vec![nxm_db::migrate::Migration::new(
-        1,
-        "create_sessions",
-        r#"CREATE TABLE IF NOT EXISTS sessions (
+    let migrations = vec![
+        nxm_db::migrate::Migration::new(
+            1,
+            "create_sessions",
+            r#"CREATE TABLE IF NOT EXISTS sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 started_at TEXT NOT NULL,
@@ -56,6 +59,20 @@ pub fn default_migration_set() -> Result<MigrationSet, TrackerError> {
                 status TEXT NOT NULL DEFAULT 'open',
                 design_phase_complete INTEGER NOT NULL DEFAULT 0
             );"#,
-    )];
+        ),
+        nxm_db::migrate::Migration::new(
+            2,
+            "create_feature_sessions",
+            r#"CREATE TABLE IF NOT EXISTS feature_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                status TEXT NOT NULL DEFAULT 'open',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+            );"#,
+        ),
+    ];
     MigrationSet::new(migrations).map_err(TrackerError::Database)
 }

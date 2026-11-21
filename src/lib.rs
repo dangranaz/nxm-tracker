@@ -9,11 +9,17 @@ mod config;
 mod database;
 mod error;
 mod logging;
+mod session;
+mod session_repository;
 
 pub use config::TrackerConfig;
 pub use database::{default_migration_set, Database};
 pub use error::TrackerError;
 pub use logging::init_logging;
+pub use session::{
+    FeatureSession, NewFeatureSession, NewSession, Session, SessionRepository, SessionStatus,
+};
+pub use session_repository::SqliteSessionRepository;
 
 /// Returns the canonical product name of this crate.
 ///

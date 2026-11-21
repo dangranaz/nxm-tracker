@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `0.5.0` |
+| **Versione** | `0.6.0` |
 | **Posizione locale** | `~/AiProjects/nexum/mcpServers/nxm-tracker` |
 | **Copia pubblicazione** | `~/AiProjects/dangranaz/nxm-tracker` |
 | **Remote GitHub** | `dangranaz/nxm-tracker` (public) |
@@ -28,36 +28,47 @@ del lavoro svolto e di quanto resta da implementare.
 | `nxm-config` | `0.2.0` | Configurazione (`ConfigPaths`, `GeneralConfig`, env override `NXM_*`) |
 | `nxm-logging` | `0.2.0` | Logging strutturato JSON (`init_product_logging`, file + stderr) |
 | `nxm-db` | `0.2.0` | Datasource SQLite con pool + migration |
+| `sqlx` | `0.9` | SQL query sul pool di `nxm-db` (sqlite, runtime-tokio) |
+| `chrono` | `0.4` | Timestamp RFC3339 per sessioni e feature session |
+| `serde` | `1` | Serializzazione (`derive`) per i modelli di dominio |
+| `tokio` | `1` | Runtime per bloccare le future sqlx in contesto sincrono |
 
 ---
 
-## Pubblic API (v0.5.0)
+## Pubblic API (v0.6.0)
 
 - `product_name() -> &'static str`
 - `TrackerConfig` — `load()`, `load_or_create_from()`, `load_from()`, `save()`, `save_to()`, `server_port()`, `database_url()`, `database_driver()`
 - `init_logging() -> Result<(), TrackerError>`
 - `Database` — `open()`, `open_from()`, `migrate()`, `handle()`
-- `default_migration_set() -> Result<MigrationSet, TrackerError>` (tabella `sessions`)
-- `TrackerError` — wrappa `Config`, `Logging`, `Database`
+- `default_migration_set() -> Result<MigrationSet, TrackerError>` (tabelle `sessions` v1 e `feature_sessions` v2)
+- `TrackerError` — wrappa `Config`, `Logging`, `Database`, più `InvalidSessionStatus`
+- `Session` — `id`, `name`, `started_at`, `ended_at`, `status`, `design_phase_complete`
+- `SessionStatus` — `open`, `paused`, `closed`
+- `FeatureSession` — `id`, `session_id`, `name`, `description`, `status`, `created_at`
+- `NewSession`, `NewFeatureSession` — input per la creazione
+- `SessionRepository` — trait per persistenza sessioni e feature session
+- `SqliteSessionRepository` — implementazione SQLite sul pool di `nxm-db`
 
 ---
 
-## Test (9/9 passati)
+## Test (20/20 passati)
 
 | File | Test |
 |------|------|
 | `tests/lib_test.rs` | `product_name_is_the_canonical_binary_name`, `product_name_matches_the_cargo_package_name` |
 | `tests/config_test.rs` | `tracker_config_loads_with_defaults_from_temp_root`, `tracker_config_save_and_load_roundtrip`, `tracker_config_custom_values_persist` |
 | `tests/logging_test.rs` | `init_logging_first_wins` |
-| `tests/database_test.rs` | `database_opens_in_temp_directory`, `database_migration_set_applies`, `default_migration_set_has_one_migration` |
+| `tests/database_test.rs` | `database_opens_in_temp_directory`, `database_migration_set_applies`, `default_migration_set_has_two_migrations` |
+| `tests/session_test.rs` | `create_and_get_session`, `get_nonexistent_session_returns_none`, `list_sessions_returns_all_ordered`, `set_session_status_changes_status`, `set_session_status_nonexistent_returns_false`, `close_session_sets_ended_at_and_status`, `close_nonexistent_session_returns_false`, `set_design_phase_complete_toggles_flag`, `create_and_list_feature_sessions`, `list_feature_sessions_empty_for_session_without_features`, `feature_session_belongs_to_correct_session` |
 
 ---
 
 ## Qualità gate
 
 - `cargo build` ✅
-- `cargo test --all-targets` ✅ (9/9)
-- `cargo clippy --all-targets -- -D warnings` ✅ (eseguito con `CARGO_TARGET_DIR=/tmp` per evitare esaurimento metadati btrfs)
+- `cargo test --all-targets` ✅ (20/20)
+- `cargo clippy --all-targets --all-features -- -D warnings` ✅ (eseguito con `CARGO_TARGET_DIR=/tmp` per evitare esaurimento metadati btrfs)
 - `cargo fmt --all -- --check` ✅
 
 ---
@@ -86,15 +97,18 @@ nxm-tracker/
 ├── src/
 │   ├── config.rs            # TrackerConfig (nxm-config wrapper)
 │   ├── database.rs          # Database (nxm-db wrapper + default_migration_set)
-│   ├── error.rs             # TrackerError (Config + Logging + Database)
+│   ├── error.rs             # TrackerError (Config + Logging + Database + InvalidSessionStatus)
 │   ├── lib.rs               # Esporta API pubblica
 │   ├── logging.rs           # init_logging() (nxm-logging wrapper)
-│   └── main.rs              # Entry point: logging → config → db → migration
+│   ├── main.rs              # Entry point: logging → config → db → migration
+│   ├── session.rs           # Session model: Session, SessionStatus, FeatureSession, SessionRepository trait
+│   └── session_repository.rs# SqliteSessionRepository (nxm-db pool backend)
 ├── tests/
 │   ├── config_test.rs
 │   ├── database_test.rs
 │   ├── lib_test.rs
-│   └── logging_test.rs
+│   ├── logging_test.rs
+│   └── session_test.rs      # Session model integration tests (11 tests)
 ├── LICENSE.md               # PolyForm Noncommercial 1.0.0
 ├── README.md                # Aggiornato con banner + licenza
 ├── CHANGELOG.md
@@ -124,15 +138,14 @@ nxm-tracker/
 
 ### Priorità alta
 
-1. **Implementare il session model** — long-running work session, stati (`open`, `closed`, `paused`), integrated feature sessions create dopo la design phase. È il core business del crate (ancora solo scaffold).
-2. **Rigenerare diagramma Archify** con `nxm-db` incluso (e possibilmente aggiungere diagrammi `sequence` per il flusso di avvio e `lifecycle` per gli stati delle sessioni).
-3. **Popolare `docs/`** — documentazione API, architettura, esempi d'uso.
+1. **Rigenerare diagramma Archify** con `nxm-db` incluso (e possibilmente aggiungere diagrammi `sequence` per il flusso di avvio e `lifecycle` per gli stati delle sessioni).
+2. **Popolare `docs/`** — documentazione API, architettura, esempi d'uso.
 
 ### Priorità media
 
-4. **Implementare MCP tools** — il crate è un MCP server, ma al momento non espone ancora tool MCP.
-5. **Aggiungere repository pattern** sopra `nxm-db` per le operazioni CRUD sulle sessioni.
-6. **Verificare il file `LICENSE`** (senza estensione) se richiesto da qualche tool di terze parti.
+3. **Implementare MCP tools** — il crate è un MCP server, ma al momento non espone ancora tool MCP.
+4. **Espandere repository pattern** — `SqliteSessionRepository` è già implementato; eventualmente aggiungere ulteriori operazioni query o altri backend.
+5. **Verificare il file `LICENSE`** (senza estensione) se richiesto da qualche tool di terze parti.
 
 ---
 

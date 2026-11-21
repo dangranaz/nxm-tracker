@@ -1,6 +1,6 @@
 [package]
 name = "nxm_tracker"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 license = "PolyForm Noncommercial 1.0.0"
 description = "Tracker for long, multi-day work sessions and the integrated feature sessions created after the design phase"
@@ -10,6 +10,10 @@ tracing = "0.1"
 nxm-config = { path = "../../shared/nxm-config" }
 nxm-logging = { path = "../../shared/nxm-logging" }
 nxm-db = { path = "../../shared/nxm-db", package = "nxm_db" }
+sqlx = { version = "0.9", features = ["runtime-tokio", "sqlite"] }
+chrono = "0.4"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt"] }
 thiserror = "2"
 
 # Standalone crate: empty [workspace] so Cargo never walks up into a parent
