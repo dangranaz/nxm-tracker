@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](LICENSE.md)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![MCP](https://img.shields.io/badge/MCP-JSON--RPC%20stdio-5A4FCF)](#mcp-configuration)
-[![Version](https://img.shields.io/badge/version-0.5.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue)](CHANGELOG.md)
 
 **Tracker for long, multi-day work sessions — part of the NXM platform**
 
@@ -36,10 +36,15 @@ Datasource access is provided by [`nxm-db`](https://github.com/dangranaz/nxm-db)
   logging to `~/.nxmconfig/logs/nxm-tracker.log` + stderr
 - **Database:** [`nxm-db`](https://github.com/dangranaz/nxm-db) — SQLite datasource
   with connection pooling and migrations
-- **Current state:** scaffold — configuration, logging, and database access integrated;
-  session-tracking logic not yet implemented
+- **Current state:** configuration, logging, database access, and session-tracking
+  logic integrated. Eight MCP tools exposed via stdio:
+  `create_session`, `get_session`, `list_sessions`, `update_session`,
+  `close_session`, `set_design_phase_complete`, `create_feature_session`,
+  `list_feature_sessions`.
 - **Public API:** `product_name()`, `TrackerConfig`, `init_logging()`, `Database`,
-  `default_migration_set()`, `TrackerError`
+  `default_migration_set()`, `TrackerError`, `Session`, `SessionStatus`,
+  `FeatureSession`, `NewSession`, `NewFeatureSession`, `SessionRepository`,
+  `SqliteSessionRepository`, plus eight MCP tool structs
 
 </div>
 
@@ -51,10 +56,17 @@ feature sessions are created so the work can be managed correctly across days.
 
 ## Status
 
-**Scaffold.** Session-tracking logic not yet implemented. Configuration is handled by
-`nxm-config`, logging by `nxm-logging`, and datasource access by `nxm-db`. The public
-API is `product_name()`, `TrackerConfig`, `init_logging()`, `Database`,
-`default_migration_set()`, and `TrackerError`.
+**Implemented (v0.7.0).** Session-tracking logic and eight MCP tools are implemented.
+Configuration is handled by `nxm-config`, logging by `nxm-logging`, datasource access
+by `nxm-db`, and MCP server shell by `nxm-mcp-server`.
+
+Public API includes `product_name()`, `TrackerConfig`, `init_logging()`, `Database`,
+`default_migration_set()`, `TrackerError`, `Session`, `SessionStatus`,
+`FeatureSession`, `NewSession`, `NewFeatureSession`, `SessionRepository`,
+`SqliteSessionRepository`, and MCP tool structs:
+`CreateSessionTool`, `GetSessionTool`, `ListSessionsTool`, `UpdateSessionTool`,
+`CloseSessionTool`, `SetDesignPhaseCompleteTool`, `CreateFeatureSessionTool`,
+`ListFeatureSessionsTool`.
 
 ## Configuration
 
@@ -100,7 +112,7 @@ access.
 
 - Backend: SQLite (default)
 - Default path: `~/.nxm/shared-db/data.db`
-- Migrations: `create_sessions` table for session tracking
+- Migrations: `create_sessions` (v1) and `create_feature_sessions` (v2) tables
 
 Example:
 
@@ -111,6 +123,24 @@ let db = Database::open()?;
 let set = default_migration_set()?;
 db.migrate(&set)?;
 ```
+
+## MCP Tools
+
+`nxm-tracker` exposes eight MCP tools via stdio (JSON-RPC), using the
+[`nxm-mcp-server`](https://github.com/dangranaz/nxm-mcp-server) shell:
+
+| Tool | Description |
+|------|-------------|
+| `create_session` | Create a new work session |
+| `get_session` | Get a work session by ID |
+| `list_sessions` | List all work sessions (newest first) |
+| `update_session` | Update name, status, or design_phase_complete |
+| `close_session` | Close a session (sets `ended_at`) |
+| `set_design_phase_complete` | Toggle design phase complete flag |
+| `create_feature_session` | Create a feature session linked to a work session |
+| `list_feature_sessions` | List feature sessions for a work session |
+
+Each tool accepts JSON arguments and returns JSON results with `isError` flag.
 
 ## Project layout
 

@@ -6,7 +6,11 @@ Behavioral guidelines for this crate. Merge with project-specific instructions a
 
 `nxm-tracker` keeps track of long, multi-day work sessions used to generate and test
 code. After the design phase, integrated feature sessions are created so the work can
-be managed correctly. Business logic is not implemented yet: this is the scaffold.
+be managed correctly. The session model (Session, SessionStatus, FeatureSession,
+SessionRepository, SqliteSessionRepository) and eight MCP tools
+(create_session, get_session, list_sessions, update_session, close_session,
+set_design_phase_complete, create_feature_session, list_feature_sessions) are
+implemented and exposed via stdio.
 
 ## Mandatory engineering rules
 
