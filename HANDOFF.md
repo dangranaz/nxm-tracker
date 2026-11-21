@@ -75,10 +75,11 @@ del lavoro svolto e di quanto resta da implementare.
 
 ## Architettura documentata
 
-- Diagramma Archify generato:
+- Diagramma Archify generato (include `nxm-db`):
   `.archify/architecture-nxm-tracker-20251120-1/nxm-tracker-architecture.html`
-  (gate tutti passati: validate, deliver, check, browser-check)
-- **Nota:** il diagramma non include ancora `nxm-db`
+  (validate ✅, deliver ✅ 9/9 artifact checks)
+- Documentazione API: `docs/api/api.md`
+- Documentazione architettura: `docs/architecture/architecture.md`
 
 ---
 
@@ -129,8 +130,7 @@ nxm-tracker/
 ## Problemi noti
 
 1. **btrfs metadata space** — su questo host i metadati btrfs di `/home` si esauriscono facilmente durante compilazioni pesanti (specialmente `clippy` con `nxm-db` che trascina `sqlx`, `tokio`, `mongodb`). Soluzione temporanea: usare `CARGO_TARGET_DIR=/tmp/...` o `cargo clean` prima di operazioni git.
-2. **Diagramma Archify** — va rigenerato per includere `nxm-db` (attualmente mostra solo `nxm-config` e `nxm-logging`).
-3. **LICENSE** — non esiste un file `LICENSE` (senza estensione), solo `LICENSE.md`. Il badge nel README punta a `LICENSE.md`.
+2. **LICENSE** — non esiste un file `LICENSE` (senza estensione), solo `LICENSE.md`. Il badge nel README punta a `LICENSE.md`.
 
 ---
 
@@ -138,14 +138,13 @@ nxm-tracker/
 
 ### Priorità alta
 
-1. **Rigenerare diagramma Archify** con `nxm-db` incluso (e possibilmente aggiungere diagrammi `sequence` per il flusso di avvio e `lifecycle` per gli stati delle sessioni).
-2. **Popolare `docs/`** — documentazione API, architettura, esempi d'uso.
+1. **Popolare `docs/`** — documentazione API e architettura appena aggiunte (`docs/api/api.md`, `docs/architecture/architecture.md`); eventualmente aggiungere esempi d'uso.
 
 ### Priorità media
 
-3. **Implementare MCP tools** — il crate è un MCP server, ma al momento non espone ancora tool MCP.
-4. **Espandere repository pattern** — `SqliteSessionRepository` è già implementato; eventualmente aggiungere ulteriori operazioni query o altri backend.
-5. **Verificare il file `LICENSE`** (senza estensione) se richiesto da qualche tool di terze parti.
+2. **Implementare MCP tools** — il crate è un MCP server, ma al momento non espone ancora tool MCP.
+3. **Espandere repository pattern** — `SqliteSessionRepository` è già implementato; eventualmente aggiungere ulteriori operazioni query o altri backend.
+4. **Verificare il file `LICENSE`** (senza estensione) se richiesto da qualche tool di terze parti.
 
 ---
 

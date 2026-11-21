@@ -12,29 +12,41 @@
     { "id": "config", "type": "backend", "label": "TrackerConfig", "sublabel": "src/config.rs", "pos": [520, 160], "size": [140, 60] },
     { "id": "logging", "type": "backend", "label": "init_logging()", "sublabel": "src/logging.rs", "pos": [520, 300], "size": [140, 60] },
     { "id": "error", "type": "backend", "label": "TrackerError", "sublabel": "src/error.rs", "pos": [520, 440], "size": [140, 60] },
-    { "id": "nxm_config", "type": "external", "label": "nxm-config", "sublabel": "shared crate", "pos": [760, 160], "size": [130, 60] },
-    { "id": "nxm_logging", "type": "external", "label": "nxm-logging", "sublabel": "shared crate", "pos": [760, 300], "size": [130, 60] },
-    { "id": "tracing", "type": "external", "label": "tracing", "sublabel": "logging facade", "pos": [760, 440], "size": [130, 60] },
-    { "id": "thiserror", "type": "external", "label": "thiserror", "sublabel": "error derive", "pos": [760, 520], "size": [130, 60] }
+    { "id": "database", "type": "backend", "label": "Database", "sublabel": "src/database.rs", "pos": [520, 560], "size": [140, 60] },
+    { "id": "session", "type": "backend", "label": "Session model", "sublabel": "src/session.rs", "pos": [760, 160], "size": [150, 60] },
+    { "id": "session_repo", "type": "backend", "label": "SqliteSessionRepository", "sublabel": "src/session_repository.rs", "pos": [760, 300], "size": [170, 60] },
+    { "id": "nxm_config", "type": "external", "label": "nxm-config", "sublabel": "shared crate", "pos": [1020, 160], "size": [130, 60] },
+    { "id": "nxm_logging", "type": "external", "label": "nxm-logging", "sublabel": "shared crate", "pos": [1020, 300], "size": [130, 60] },
+    { "id": "nxm_db", "type": "external", "label": "nxm-db", "sublabel": "shared crate (SQLite)", "pos": [1020, 440], "size": [150, 60] },
+    { "id": "tracing", "type": "external", "label": "tracing", "sublabel": "logging facade", "pos": [1020, 560], "size": [130, 60] },
+    { "id": "thiserror", "type": "external", "label": "thiserror", "sublabel": "error derive", "pos": [1020, 680], "size": [130, 60] },
+    { "id": "sqlx", "type": "external", "label": "sqlx", "sublabel": "SQL async runtime", "pos": [1020, 800], "size": [130, 60] }
   ],
   "boundaries": [
-    { "kind": "region", "label": "nxm-tracker crate", "wraps": ["lib", "config", "logging", "error"] },
-    { "kind": "region", "label": "external dependencies", "wraps": ["nxm_config", "nxm_logging", "tracing", "thiserror"] }
+    { "kind": "region", "label": "nxm-tracker crate", "wraps": ["lib", "config", "logging", "error", "database", "session", "session_repo"] },
+    { "kind": "region", "label": "external dependencies", "wraps": ["nxm_config", "nxm_logging", "nxm_db", "tracing", "thiserror", "sqlx"] }
   ],
   "connections": [
     { "id": "main-to-lib", "from": "main", "to": "lib", "label": "entry point" },
     { "id": "lib-to-config", "from": "lib", "to": "config", "label": "exposes TrackerConfig" },
     { "id": "lib-to-logging", "from": "lib", "to": "logging", "label": "exposes init_logging()" },
     { "id": "lib-to-error", "from": "lib", "to": "error", "label": "exposes TrackerError" },
+    { "id": "lib-to-database", "from": "lib", "to": "database", "label": "exposes Database + migrations" },
+    { "id": "lib-to-session", "from": "lib", "to": "session", "label": "exposes Session, SessionRepository" },
+    { "id": "lib-to-session-repo", "from": "lib", "to": "session_repo", "label": "exposes SqliteSessionRepository" },
     { "id": "config-to-nxm-config", "from": "config", "to": "nxm_config", "label": "uses ConfigPaths, GeneralConfig" },
     { "id": "logging-to-nxm-logging", "from": "logging", "to": "nxm_logging", "label": "wraps init_product_logging()" },
+    { "id": "database-to-nxm-db", "from": "database", "to": "nxm_db", "label": "wraps nxm_db::Db + pool" },
+    { "id": "session-repo-to-database", "from": "session_repo", "to": "database", "label": "uses nxm_db pool" },
     { "id": "lib-to-tracing", "from": "lib", "to": "tracing", "label": "debug/info/error events" },
-    { "id": "error-to-thiserror", "from": "error", "to": "thiserror", "label": "derive(Error)" }
+    { "id": "error-to-thiserror", "from": "error", "to": "thiserror", "label": "derive(Error)" },
+    { "id": "session-repo-to-sqlx", "from": "session_repo", "to": "sqlx", "label": "SQL queries on pool" }
   ],
   "cards": [
     { "dot": "cyan", "title": "Entry", "items": ["Binary starts logging, then loads configuration"] },
     { "dot": "emerald", "title": "Configuration", "items": ["TrackerConfig wraps nxm_config::GeneralConfig", "Loads from ~/.nxmconfig or NXM_CONFIG_HOME"] },
     { "dot": "rose", "title": "Logging", "items": ["JSON logs to ~/.nxmconfig/logs/nxm-tracker.log", "First-wins global subscriber"] },
-    { "dot": "violet", "title": "Errors", "items": ["TrackerError wraps Config and Logging errors"] }
+    { "dot": "violet", "title": "Errors", "items": ["TrackerError wraps Config, Logging, Database errors", "Plus InvalidSessionStatus"] },
+    { "dot": "amber", "title": "Session model (v0.6.0)", "items": ["Session: open / paused / closed states", "FeatureSession: post-design phase", "SessionRepository trait + SQLite impl", "Migration v2: create_feature_sessions"] }
   ]
 }
