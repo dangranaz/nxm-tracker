@@ -177,6 +177,59 @@ impl SessionRepository for SqliteSessionRepository {
         Ok(result.rows_affected() > 0)
     }
 
+    fn update_session(
+        &self,
+        id: i64,
+        name: Option<&str>,
+        status: Option<SessionStatus>,
+        design_phase_complete: Option<bool>,
+    ) -> Result<bool, TrackerError> {
+        let pool = self.pool()?;
+
+        let mut set_clauses: Vec<String> = Vec::new();
+        let mut bind_count: u32 = 0;
+
+        if name.is_some() {
+            bind_count += 1;
+            set_clauses.push(format!("name = ?{bind_count}"));
+        }
+        if status.is_some() {
+            bind_count += 1;
+            set_clauses.push(format!("status = ?{bind_count}"));
+        }
+        if design_phase_complete.is_some() {
+            bind_count += 1;
+            set_clauses.push(format!("design_phase_complete = ?{bind_count}"));
+        }
+
+        if set_clauses.is_empty() {
+            return Ok(false);
+        }
+
+        bind_count += 1;
+        let sql = format!(
+            "UPDATE sessions SET {} WHERE id = ?{bind_count}",
+            set_clauses.join(", ")
+        );
+
+        let mut query = sqlx::query(sqlx::AssertSqlSafe(sql));
+        if let Some(n) = name {
+            query = query.bind(n);
+        }
+        if let Some(s) = status {
+            query = query.bind(Self::status_to_str(s));
+        }
+        if let Some(c) = design_phase_complete {
+            query = query.bind(if c { 1 } else { 0 });
+        }
+        query = query.bind(id);
+
+        let result = self
+            .block_on(query.execute(&pool))
+            .map_err(|e| TrackerError::Database(e.into()))?;
+        Ok(result.rows_affected() > 0)
+    }
+
     fn create_feature_session(
         &self,
         new: &NewFeatureSession,

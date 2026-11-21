@@ -9,6 +9,7 @@ mod config;
 mod database;
 mod error;
 mod logging;
+mod mcp_tools;
 mod session;
 mod session_repository;
 
@@ -16,6 +17,10 @@ pub use config::TrackerConfig;
 pub use database::{default_migration_set, Database};
 pub use error::TrackerError;
 pub use logging::init_logging;
+pub use mcp_tools::{
+    CloseSessionTool, CreateFeatureSessionTool, CreateSessionTool, GetSessionTool,
+    ListFeatureSessionsTool, ListSessionsTool, SetDesignPhaseCompleteTool, UpdateSessionTool,
+};
 pub use session::{
     FeatureSession, NewFeatureSession, NewSession, Session, SessionRepository, SessionStatus,
 };

@@ -14,7 +14,9 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
   - `sqlx` (0.9, sqlite + runtime-tokio) for SQL queries on the `nxm-db` pool
   - `chrono` (0.4) for RFC3339 timestamps
   - `serde` (1, derive) for serialization
+  - `serde_json` (1) for MCP tool arguments/results
   - `tokio` (1, rt) for blocking async sqlx calls in sync context
+  - `nxm-mcp-server` (0.1.0, path dep) for MCP server shell (transport, tool registry, dispatch)
 - Public API:
   - `product_name() -> &'static str` — canonical product name
   - `TrackerConfig` — wrapper around `nxm_config::GeneralConfig` with `load()`,
@@ -30,16 +32,21 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
     `nxm_db::DbError`, plus `InvalidSessionStatus`
   - `Session` — work session (`id`, `name`, `started_at`, `ended_at`, `status`,
     `design_phase_complete`)
-  - `SessionStatus` — `open`, `paused`, `closed`
+  - `SessionStatus` — `open`, `paused`, `closed` (serialized as lowercase strings)
   - `FeatureSession` — integrated feature session post-design phase
   - `NewSession`, `NewFeatureSession` — creation input structs
   - `SessionRepository` — trait for session/feature session persistence
   - `SqliteSessionRepository` — SQLite implementation on `nxm-db` pool
-- Binary initializes logging, loads configuration, opens database, and applies migrations.
+  - MCP tools: `CreateSessionTool`, `GetSessionTool`, `ListSessionsTool`,
+    `UpdateSessionTool`, `CloseSessionTool`, `SetDesignPhaseCompleteTool`,
+    `CreateFeatureSessionTool`, `ListFeatureSessionsTool`
+- Binary initializes logging, loads configuration, opens database, applies migrations,
+  registers MCP tools, and serves on stdio via `nxm-mcp-server` shell.
 - Tests in `tests/config_test.rs` (config integration), `tests/logging_test.rs`
   (logging integration), `tests/database_test.rs` (database integration),
-  `tests/lib_test.rs` (product name smoke tests), and
-  `tests/session_test.rs` (session model integration, 11 tests).
+  `tests/lib_test.rs` (product name smoke tests), `tests/session_test.rs`
+  (session model integration, 11 tests), and
+  `tests/mcp_tools_test.rs` (MCP tools integration, 11 tests).
 
 ## Project layout
 
@@ -51,7 +58,5 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 ## Next increment
 
-Rigenerare il diagramma Archify includendo `nxm-db`; popolare `docs/` (API,
-architettura, esempi d'uso); implementare i tool MCP; aggiungere repository pattern
-sopra `nxm-db` per il CRUD sulle sessioni (già parzialmente fatto con
-`SqliteSessionRepository`).
+Popolare `docs/` con esempi d'uso; espandere repository pattern con ulteriori
+operazioni query se necessario; verificare file `LICENSE` senza estensione.

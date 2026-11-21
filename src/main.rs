@@ -1,49 +1,71 @@
-use nxm_tracker::{default_migration_set, init_logging, product_name, Database, TrackerConfig};
+//! Entry point for `nxm-tracker` MCP server.
+//!
+//! Startup contract (in order):
+//! 1. `nxm_mcp_server::init_logging()` — JSON structured logging
+//! 2. `TrackerConfig::load()` — configuration from ~/.nxmconfig
+//! 3. `Database::open()` — SQLite datasource
+//! 4. `default_migration_set()` + `db.migrate()` — apply schema migrations
+//! 5. Register MCP tools on `ServerContext`
+//! 6. `serve()` — reactive stdio loop
 
-fn main() {
-    if let Err(e) = init_logging() {
-        eprintln!("failed to initialize logging: {e}");
-        std::process::exit(1);
-    }
+use std::sync::Arc;
 
-    match TrackerConfig::load() {
-        Ok(config) => {
-            tracing::info!(target: "nexum::tracker::main", "starting nxm-tracker");
-            println!("{} {}", product_name(), env!("CARGO_PKG_VERSION"));
-            println!("  server port: {}", config.server_port());
-            println!("  database url: {}", config.database_url());
-            println!("  database driver: {:?}", config.database_driver());
+use nxm_mcp_server::mcp::tool::McpTool;
+use nxm_mcp_server::{init_logging, serve, ServerContext};
+use nxm_tracker::{
+    default_migration_set, CloseSessionTool, CreateFeatureSessionTool, CreateSessionTool, Database,
+    GetSessionTool, ListFeatureSessionsTool, ListSessionsTool, SetDesignPhaseCompleteTool,
+    SqliteSessionRepository, TrackerConfig, UpdateSessionTool,
+};
 
-            match Database::open() {
-                Ok(db) => {
-                    println!("  database: opened successfully");
-                    match default_migration_set() {
-                        Ok(set) => match db.migrate(&set) {
-                            Ok(()) => println!("  migrations: applied successfully"),
-                            Err(e) => {
-                                tracing::error!(target: "nexum::tracker::main", error = %e, "migration failed");
-                                eprintln!("migration failed: {e}");
-                                std::process::exit(1);
-                            }
-                        },
-                        Err(e) => {
-                            tracing::error!(target: "nexum::tracker::main", error = %e, "migration set creation failed");
-                            eprintln!("migration set creation failed: {e}");
-                            std::process::exit(1);
-                        }
-                    }
-                }
-                Err(e) => {
-                    tracing::error!(target: "nexum::tracker::main", error = %e, "database open failed");
-                    eprintln!("database open failed: {e}");
-                    std::process::exit(1);
-                }
-            }
-        }
-        Err(e) => {
-            tracing::error!(target: "nexum::tracker::main", error = %e, "failed to load configuration");
-            eprintln!("failed to load configuration: {e}");
-            std::process::exit(1);
-        }
-    }
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    // 1. Structured logging (JSON, env NXM_MCP_LOG > RUST_LOG > info).
+    init_logging().map_err(|e| format!("logging init failed: {e}"))?;
+
+    // 2. Load configuration.
+    let _config = TrackerConfig::load().map_err(|e| format!("config load failed: {e}"))?;
+    tracing::info!(target: "nexum::tracker::main", "configuration loaded");
+
+    // 3. Open database and apply migrations.
+    let db = Database::open().map_err(|e| format!("database open failed: {e}"))?;
+    tracing::info!(target: "nexum::tracker::main", "database opened");
+
+    let migration_set =
+        default_migration_set().map_err(|e| format!("migration set failed: {e}"))?;
+    db.migrate(&migration_set)
+        .map_err(|e| format!("migration failed: {e}"))?;
+    tracing::info!(target: "nexum::tracker::main", "migrations applied");
+
+    // 4. Build session repository (shared across all MCP tools).
+    let repo = Arc::new(SqliteSessionRepository::from_database(db));
+
+    // 5. Build MCP context and register tools.
+    let mut ctx = ServerContext::new("nxm-tracker", env!("CARGO_PKG_VERSION"));
+
+    ctx.register_tool(Arc::new(CreateSessionTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(GetSessionTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(ListSessionsTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(UpdateSessionTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(CloseSessionTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(
+        Arc::new(SetDesignPhaseCompleteTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>
+    );
+    ctx.register_tool(
+        Arc::new(CreateFeatureSessionTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>
+    );
+    ctx.register_tool(
+        Arc::new(ListFeatureSessionsTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>,
+    );
+
+    tracing::info!(
+        target: "nexum::tracker::main",
+        tool_count = ctx.tool_count(),
+        "MCP tools registered"
+    );
+
+    // 6. Serve on stdio.
+    serve(std::io::stdin().lock(), std::io::stdout().lock(), &ctx)
+        .map_err(|e| format!("serve failed: {e}"))?;
+
+    Ok(())
 }

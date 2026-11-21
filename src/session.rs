@@ -5,13 +5,17 @@
 //! [`SessionRepository`] trait that abstracts persistence.
 
 use crate::error::TrackerError;
-use serde::{Deserialize, Serialize};
+use serde::de;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Lifecycle status of a work session.
 ///
 /// Transitions: `Open` → `Paused` → `Open` (resume) or `Open` → `Closed`.
 /// A `Closed` session cannot be reopened.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+///
+/// Serializes as lowercase string (`"open"`, `"paused"`, `"closed"`) to match
+/// the database storage format.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SessionStatus {
     /// Session is actively being worked on.
     Open,
@@ -19,6 +23,23 @@ pub enum SessionStatus {
     Paused,
     /// Session is finished and archived.
     Closed,
+}
+
+impl Serialize for SessionStatus {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            SessionStatus::Open => serializer.serialize_str("open"),
+            SessionStatus::Paused => serializer.serialize_str("paused"),
+            SessionStatus::Closed => serializer.serialize_str("closed"),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for SessionStatus {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let s = String::deserialize(deserializer)?;
+        SessionStatus::try_from(s.as_str()).map_err(de::Error::custom)
+    }
 }
 
 impl std::fmt::Display for SessionStatus {
@@ -144,6 +165,17 @@ pub trait SessionRepository: Send + Sync {
     /// Marks the design phase as complete (or incomplete) for a session.
     /// Returns `false` if not found.
     fn set_design_phase_complete(&self, id: i64, complete: bool) -> Result<bool, TrackerError>;
+
+    /// Updates one or more fields of an existing session.
+    /// At least one of `name`, `status`, `design_phase_complete` must be
+    /// provided. Returns `false` if the session is not found.
+    fn update_session(
+        &self,
+        id: i64,
+        name: Option<&str>,
+        status: Option<SessionStatus>,
+        design_phase_complete: Option<bool>,
+    ) -> Result<bool, TrackerError>;
 
     /// Inserts a new feature session linked to a work session.
     fn create_feature_session(

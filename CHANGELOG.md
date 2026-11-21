@@ -1,5 +1,17 @@
 # Changelog for nxm-tracker
 
+## 0.7.0 - 2026-11-21
+
+- feat(tracker): implement MCP tools for session management
+  - add `create_session`, `get_session`, `list_sessions`, `update_session`, `close_session`
+  - add `set_design_phase_complete`, `create_feature_session`, `list_feature_sessions`
+  - add `SessionStatus` serde serialization as lowercase strings (`open`, `paused`, `closed`)
+  - add `SessionRepository::update_session` method for partial session updates
+  - add `nxm-mcp-server` dependency for MCP server shell integration
+  - rewrite `main.rs` to use `nxm-mcp-server` shell: logging → config → db → migration → register tools → serve
+  - add 11 MCP tool integration tests in `tests/mcp_tools_test.rs`
+  - add `serde_json` dependency
+
 ## 0.6.0 - 2026-11-21
 
 - feat(tracker): implement session model
