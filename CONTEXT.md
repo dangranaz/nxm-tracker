@@ -47,7 +47,7 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
   `tests/lib_test.rs` (product name smoke tests), `tests/session_test.rs`
   (session model integration, 11 tests), and
   `tests/mcp_tools_test.rs` (MCP tools integration, 11 tests).
-- `docs/security/SECURITY.md` — security policy with supported versions, vulnerability reporting process, disclosure timeline, security best practices
+- `SECURITY.md` — security policy with supported versions, vulnerability reporting process, disclosure timeline, security best practices
 
 ## Project layout
 
