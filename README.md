@@ -2,11 +2,11 @@
 
 # nxm-tracker
 
-<!-- Licensed MIT — part of the nxm tooling. -->
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<!-- Licensed PolyForm Noncommercial 1.0.0 — part of the nxm tooling. -->
+[![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](LICENSE.md)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![MCP](https://img.shields.io/badge/MCP-JSON--RPC%20stdio-5A4FCF)](#mcp-configuration)
-[![Version](https://img.shields.io/badge/version-0.4.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue)](CHANGELOG.md)
 
 **Tracker for long, multi-day work sessions — part of the NXM platform**
 
@@ -133,4 +133,8 @@ The mandatory engineering rules live in `.pi/rules/` and are summarised in `AGEN
 
 ## License
 
-Open source, **MIT** license ([LICENSE](LICENSE)).
+**PolyForm Noncommercial License 1.0.0** ([LICENSE.md](LICENSE.md)).
+
+Free for noncommercial use. Commercial use requires a separate commercial license
+from the copyright holder. See the full license text at
+https://polyformproject.com/licenses/noncommercial/1.0.0.

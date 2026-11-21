@@ -1,5 +1,12 @@
 # Changelog for nxm-tracker
 
+## 0.5.0 - 2026-11-20
+
+- fix(tracker): change license from MIT to PolyForm Noncommercial 1.0.0
+  - add `LICENSE.md` with PolyForm Noncommercial License text
+  - update README badge and license section
+  - update Cargo.toml license field
+
 ## 0.4.0 - 2026-11-20
 
 - feat(tracker): integrate nxm-db for datasource access
