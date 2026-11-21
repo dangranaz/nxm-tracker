@@ -1,5 +1,13 @@
 # Changelog for nxm-tracker
 
+## 0.7.2 - 2026-11-21
+
+- docs(tracker): add SECURITY.md
+  - add security policy with supported versions, vulnerability reporting process, disclosure timeline
+  - document security best practices: input validation, secret handling, dependency auditing, no unsafe code, data protection
+  - document MCP tools security behavior (isError envelopes, no stack trace leakage)
+  - reference `.pi/rules/security.md` as canonical source
+
 ## 0.7.1 - 2026-11-21
 
 - docs(tracker): document session states
