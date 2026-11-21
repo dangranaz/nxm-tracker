@@ -55,9 +55,9 @@ con altri prodotti NXM.
 - Dipendenze: `nxm-mcp-server`, `serde_json`
 
 ### v0.7.2 — 2026-11-21 — Security policy
-- `SECURITY.md` con versioni supportate, processo di segnalazione vulnerabilità, timeline di disclosure
-- Best practice di sicurezza documentate: input validation, secret handling, dependency auditing, no unsafe code, data protection
-- Comportamento sicurezza dei tool MCP documentato
+- `docs/security/SECURITY.md` with supported versions, vulnerability reporting process, disclosure timeline
+- Documented security best practices: input validation, secret handling, dependency auditing, no `unsafe` code, data protection
+- Documented MCP tools security behavior
 
 ### v0.7.1 — 2026-11-21 — Documentazione stati sessione
 - `docs/api/api.md` — riferimento API pubblica con esempi
