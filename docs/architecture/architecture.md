@@ -68,13 +68,45 @@ nxm-tracker crate
 | `status` | TEXT NOT NULL DEFAULT 'open' | Stato della feature session |
 | `created_at` | TEXT NOT NULL | Timestamp creazione (RFC3339) |
 
-## Stati di una work session
+## Stati di una work session (`SessionStatus`)
+
+Ogni work session può trovarsi in uno dei tre stati seguenti. Le transizioni
+consentite sono indicate nella colonna "Transizioni possibili".
+
+| Stato | Valore DB | Descrizione | Transizioni possibili | Operatore MCP |
+|-------|-----------|-------------|----------------------|---------------|
+| `Open` | `open` | Sessione attivamente in lavorazione. Stato iniziale di ogni nuova sessione. | `Paused` (sospendi), `Closed` (chiudi) | `create_session`, `update_session`, `close_session` |
+| `Paused` | `paused` | Sessione temporaneamente sospesa. Può essere ripresa in un secondo momento. | `Open` (riprendi), `Closed` (chiudi) | `update_session`, `close_session` |
+| `Closed` | `closed` | Sessione terminata e archiviato. Stato terminale: non può essere riaperta. | Nessuna (terminale) | `close_session` |
+
+### Diagramma delle transizioni
 
 ```
-Open ──→ Paused ──→ Open  (resume)
+Open ──→ Paused ──→ Open  (riprendi)
   │                │
-  └──────→ Closed  (terminal)
+  └──────→ Closed  (terminale)
 ```
+
+### Regole di transizione
+
+- `Open` → `Paused`: la sessione viene sospesa, `ended_at` rimane `NULL`.
+- `Paused` → `Open`: la sessione viene ripresa, `ended_at` rimane `NULL`.
+- `Open` → `Closed`: la sessione viene chiusa, `ended_at` viene impostato a `now`.
+- `Paused` → `Closed`: la sessione viene chiusa da stato sospeso, `ended_at` viene impostato a `now`.
+- `Closed` → *nessuno*: stato terminale, nessuna transizione in uscita è consentita.
+
+### Elenco attività per gestione stati
+
+| Attività | Tool MCP | Descrizione |
+|----------|----------|-------------|
+| Creare una nuova sessione | `create_session` | Inserisce una sessione con stato `open` e `started_at` impostato |
+| Recuperare una sessione | `get_session` | Restituisce la sessione con il suo stato attuale |
+| Listare tutte le sessioni | `list_sessions` | Restituisce tutte le sessioni ordinate per `started_at` desc |
+| Aggiornare nome/stato/flag | `update_session` | Modifica `name`, `status` (`open`/`paused`/`closed`) e `design_phase_complete` |
+| Chiudere una sessione | `close_session` | Imposta `status = 'closed'` e `ended_at = now` |
+| Segnare design phase completa | `set_design_phase_complete` | Imposta `design_phase_complete = true/false` |
+| Creare una feature session | `create_feature_session` | Crea una feature session collegata a una work session |
+| Listare feature session | `list_feature_sessions` | Restituisce le feature session di una work session |
 
 - `Closed` è uno stato terminale: una sessione chiusa non può essere riaperta.
 - `close_session()` imposta `status = 'closed'` e `ended_at = now`.

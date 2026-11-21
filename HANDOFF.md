@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `0.7.0` |
+| **Versione** | `0.7.1` |
 | **Posizione locale** | `~/AiProjects/nexum/mcpServers/nxm-tracker` |
 | **Copia pubblicazione** | `~/AiProjects/dangranaz/nxm-tracker` |
 | **Remote GitHub** | `dangranaz/nxm-tracker` (public) |
@@ -96,8 +96,8 @@ nxm-tracker/
 ├── .archify/                # Diagrammi Archify (candidato + HTML renderizzato)
 ├── builds/                  # Artefatti di build (.gitkeep)
 ├── docs/
-│   ├── architecture/        # (vuoto, da popolare)
-│   ├── api/                 # (vuoto, da popolare)
+│   ├── architecture/        # architecture.md (struttura moduli, flusso avvio, DB schema, stati sessione)
+│   ├── api/                 # api.md (riferimento API pubblica con esempi)
 │   └── superpowers/         # piani e specifiche esistenti
 ├── scripts/
 │   └── build.sh             # Build release + copia in builds/
@@ -146,7 +146,7 @@ nxm-tracker/
 
 ### Priorità alta
 
-1. **Popolare `docs/` con esempi d'uso** — `docs/api/api.md` e `docs/architecture/architecture.md` già esistono.
+1. **Aggiungere esempi d'uso esecutibili** in `docs/examples/` o come blocchi di codice compilabili in `docs/api/api.md` e `docs/architecture/architecture.md` (creazione, lettura, update, chiusura sessione, feature session).
 
 ### Priorità media
 

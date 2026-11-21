@@ -142,6 +142,21 @@ db.migrate(&set)?;
 
 Each tool accepts JSON arguments and returns JSON results with `isError` flag.
 
+## Session States
+
+A work session can be in one of three states:
+
+| Stato | Valore DB | Descrizione |
+|-------|-----------|-------------|
+| `Open` | `open` | Session actively being worked on. Initial state of every new session. |
+| `Paused` | `paused` | Session temporarily suspended. Can be resumed later. |
+| `Closed` | `closed` | Session finished and archived. Terminal state: cannot be reopened. |
+
+Transitions: `Open → Paused → Open` (resume), `Open/Paused → Closed` (terminal).
+
+See [`docs/architecture/architecture.md`](docs/architecture/architecture.md) for the
+full state transition table and allowed operations.
+
 ## Project layout
 
 - `docs/` — project documentation

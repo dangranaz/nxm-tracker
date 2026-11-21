@@ -1,5 +1,13 @@
 # Changelog for nxm-tracker
 
+## 0.7.1 - 2026-11-21
+
+- docs(tracker): document session states
+  - add session state transition table to `docs/architecture/architecture.md`
+    (`Open`, `Paused`, `Closed` with DB values, transitions, MCP tool mapping)
+  - add allowed activities list for session lifecycle management
+  - add Session States section to `README.md` with state table and transitions
+
 ## 0.7.0 - 2026-11-21
 
 - feat(tracker): implement MCP tools for session management
