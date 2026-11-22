@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `0.7.2` |
+| **Versione** | `0.8.0` |
 | **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
 | **Ultimo tag** | `v0.7.2` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
@@ -147,7 +147,14 @@ nxm-tracker/
 
 ### Priorità alta
 
-1. **Aggiungere esempi d'uso esecutibili** in `docs/examples/` o come blocchi di codice compilabili in `docs/api/api.md` e `docs/architecture/architecture.md` (creazione, lettura, update, chiusura sessione, feature session).
+1. ✅ **Aggiungere esempi d'uso esecutibili** — completato in v0.8.0
+   - `docs/examples/create_and_get_session.rs`
+   - `docs/examples/update_session.rs`
+   - `docs/examples/close_session.rs`
+   - `docs/examples/feature_sessions.rs`
+   - `docs/examples/full_workflow.rs`
+   - `docs/examples/mcp_payloads.md`
+   - `tests/examples_test.rs` (verifica che i file esistano e siano ben formati)
 
 ### Priorità media
 

@@ -60,7 +60,8 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 ## Next increment
 
 Espandere repository pattern con ulteriori operazioni query se necessario; verificare
-file `LICENSE` senza estensione; aggiungere esempi d'uso in `docs/examples/`.
+file `LICENSE` senza estensione. Gli esempi d'uso in `docs/examples/` sono stati
+aggiunti nella release v0.8.0.
 
 Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale e
 pianificazione futura (v0.8.0, v0.9.0, v1.0.0, post-v1.0).

@@ -1,5 +1,15 @@
 # Changelog for nxm-tracker
 
+## 0.8.0 - 2026-11-22
+- feat(tracker): add executable usage examples
+  - add `docs/examples/create_and_get_session.rs` — create and read a session
+  - add `docs/examples/update_session.rs` — update name/status/design_phase_complete
+  - add `docs/examples/close_session.rs` — close a session and set ended_at
+  - add `docs/examples/feature_sessions.rs` — create and list feature sessions
+  - add `docs/examples/full_workflow.rs` — complete end-to-end flow
+  - add `docs/examples/mcp_payloads.md` — JSON request/response payloads for all 8 MCP tools
+  - add `tests/examples_test.rs` — verifies example files exist and are well-formed
+
 ## 0.7.2 - 2026-11-21
 
 - docs(tracker): add SECURITY.md
