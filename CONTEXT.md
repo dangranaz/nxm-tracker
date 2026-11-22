@@ -46,15 +46,15 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
   (logging integration), `tests/database_test.rs` (database integration),
   `tests/lib_test.rs` (product name smoke tests), `tests/session_test.rs`
   (session model integration, 14 tests), `tests/mcp_tools_test.rs`
-  (MCP tools integration, 11 tests), `tests/stdio_test.rs` (stdio end-to-end,
-  4 tests), `tests/scripts_test.rs` (trackerUp/trackerDown lifecycle, 3 tests),
+  (MCP tools integration, 15 tests), `tests/stdio_test.rs` (stdio end-to-end,
+  7 tests), `tests/scripts_test.rs` (trackerUp/trackerDown lifecycle, 3 tests),
   and `tests/examples_test.rs` (example files verification, 4 tests), and
   `tests/git_workspace_test.rs` (git workspace helpers, 10 tests).
 - `SECURITY.md` — security policy with supported versions, vulnerability reporting process, disclosure timeline, security best practices
 
 ## Project layout
 
-- `docs/` — project documentation (architecture, API, etc.)
+- `docs/` — project documentation (architecture, API, user guide, etc.)
 - `scripts/` — build and release scripts
   - `build.sh` — build release + copia in builds/
   - `trackerUp` — avvia nxm-tracker MCP server in background
@@ -65,7 +65,7 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 ## Next increment
 
-Repository pattern espanduto (v0.9.0), integrazione git workspace per creazione sessione con branch `integration_<short>` (v0.10.0). Prossimo incremento: v1.0.0 (validazione input MCP, test end-to-end stdio, guida utente, gestione errori migliorata).
+✅ v1.0.0 completato (Production ready): validazione input MCP, test end-to-end stdio, guida utente (`docs/user-guide.md`), gestione errori migliorata. Prossimo incremento: post-v1.0 (integrazione con nxm-conductor/nxm-cortexdb, notifiche webhook, export/import, metriche).
 
 Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale e
 pianificazione futura (v0.8.0, v0.9.0, v1.0.0, post-v1.0).

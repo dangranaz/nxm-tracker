@@ -1,5 +1,18 @@
 # Changelog for nxm-tracker
 
+## 1.0.0 - 2026-11-22
+- feat(tracker): input validation for all MCP tools
+  - validate non-empty names for `create_session` and `create_feature_session`
+  - validate RFC3339 timestamps for `create_session`
+  - validate session existence for `get_session`, `update_session`, `close_session`, `set_design_phase_complete`, `create_feature_session`, `list_feature_sessions`
+  - all tools return `isError=true` with descriptive message on invalid input
+- feat(tracker): end-to-end stdio tests
+  - add validation tests via stdio transport (empty name, invalid timestamp, nonexistent session)
+- docs(tracker): user guide
+  - add `docs/user-guide.md` with complete reference for all 8 MCP tools
+  - add server startup/stop instructions (`trackerUp`, `trackerDown`)
+  - add session states table and validation error reference
+
 ## 0.10.0 - 2026-11-22
 - feat(tracker): git workspace integration for session creation
   - add `src/git_workspace.rs` with `is_git_repo`, `base_branch`, `create_integration_branch`, `sanitize_branch_name`

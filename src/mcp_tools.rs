@@ -46,6 +46,30 @@ fn get_opt_bool(args: &Value, key: &str) -> Option<bool> {
     args.get(key).and_then(|v| v.as_bool())
 }
 
+/// Helper: validate that a string is non-empty (after trimming whitespace).
+fn validate_non_empty(value: &str, field: &str) -> Result<(), String> {
+    if value.trim().is_empty() {
+        Err(format!("argument '{field}' must not be empty"))
+    } else {
+        Ok(())
+    }
+}
+
+/// Helper: validate that a string is a valid RFC3339 timestamp.
+fn validate_rfc3339(value: &str, field: &str) -> Result<(), String> {
+    chrono::DateTime::parse_from_rfc3339(value)
+        .map(|_| ())
+        .map_err(|_| format!("argument '{field}' must be a valid RFC3339 timestamp"))
+}
+
+/// Helper: validate that a session with the given ID exists.
+fn validate_session_exists(repo: &SqliteSessionRepository, id: i64) -> Result<(), String> {
+    match repo.get_session(id).map_err(|e| format!("{e}"))? {
+        Some(_) => Ok(()),
+        None => Err(format!("session {id} not found")),
+    }
+}
+
 /// Helper: build a text content result.
 fn text_result(text: String) -> Value {
     json!({
@@ -106,6 +130,9 @@ impl CreateSessionTool {
         let started_at = get_str(args, "started_at")?;
         let working_directory = get_opt_str(args, "working_directory");
 
+        validate_non_empty(&name, "name")?;
+        validate_rfc3339(&started_at, "started_at")?;
+
         // If a working directory is provided, ensure it is a git repository and
         // create an integration branch before creating the session.
         if let Some(path) = working_directory {
@@ -157,6 +184,8 @@ impl GetSessionTool {
         let id = get_str(args, "id")?
             .parse::<i64>()
             .map_err(|_| "argument 'id' must be an integer".to_string())?;
+
+        validate_session_exists(&self.repo, id)?;
 
         match self.repo.get_session(id).map_err(|e| format!("{e}"))? {
             Some(session) => Ok(text_result(serde_json::to_string(&session).unwrap())),
@@ -233,10 +262,15 @@ impl UpdateSessionTool {
             .map_err(|_| "argument 'id' must be an integer".to_string())?;
 
         let name = get_opt_str(args, "name");
+        if let Some(ref n) = name {
+            validate_non_empty(n, "name")?;
+        }
         let status = get_opt_str(args, "status")
             .map(|s| SessionStatus::try_from(s.as_str()).map_err(|e| format!("{e}")))
             .transpose()?;
         let design_phase_complete = get_opt_bool(args, "design_phase_complete");
+
+        validate_session_exists(&self.repo, id)?;
 
         let updated = self
             .repo
@@ -289,6 +323,8 @@ impl CloseSessionTool {
             .parse::<i64>()
             .map_err(|_| "argument 'id' must be an integer".to_string())?;
 
+        validate_session_exists(&self.repo, id)?;
+
         let success = self.repo.close_session(id).map_err(|e| format!("{e}"))?;
 
         if success {
@@ -333,6 +369,8 @@ impl SetDesignPhaseCompleteTool {
             .map_err(|_| "argument 'id' must be an integer".to_string())?;
         let complete = get_opt_bool(args, "complete")
             .ok_or_else(|| "missing required argument: complete".to_string())?;
+
+        validate_session_exists(&self.repo, id)?;
 
         let success = self
             .repo
@@ -385,6 +423,9 @@ impl CreateFeatureSessionTool {
         let name = get_str(args, "name")?;
         let description = get_opt_str(args, "description");
 
+        validate_non_empty(&name, "name")?;
+        validate_session_exists(&self.repo, session_id)?;
+
         let new = NewFeatureSession {
             session_id,
             name,
@@ -431,6 +472,7 @@ impl ListFeatureSessionsTool {
         let session_id = get_str(args, "session_id")?
             .parse::<i64>()
             .map_err(|_| "argument 'session_id' must be an integer".to_string())?;
+        validate_session_exists(&self.repo, session_id)?;
 
         let features = self
             .repo

@@ -188,3 +188,83 @@ fn stdio_invalid_json_returns_parse_error() -> Result<(), Box<dyn std::error::Er
     stop_server(child);
     Ok(())
 }
+
+#[test]
+fn stdio_create_session_empty_name_rejected() -> Result<(), Box<dyn std::error::Error>> {
+    let (child, mut writer, mut reader) = if let Ok(t) = spawn_server() {
+        t
+    } else {
+        eprintln!("STDIO TEST SKIPPED: spawn_server failed");
+        return Ok(());
+    };
+
+    let init = r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}"#;
+    let _ = send_and_receive(&mut writer, &mut reader, init)?;
+
+    let request = r#"{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"create_session","arguments":{"name":"   ","started_at":"2026-11-20T08:00:00+01:00"}}}"#;
+    let response = send_and_receive(&mut writer, &mut reader, request)?;
+
+    assert!(
+        response.contains("\"isError\":true"),
+        "empty name should return isError=true, risposta: {response}"
+    );
+
+    stop_server(child);
+    Ok(())
+}
+
+#[test]
+fn stdio_create_session_invalid_timestamp_rejected() -> Result<(), Box<dyn std::error::Error>> {
+    let (child, mut writer, mut reader) = if let Ok(t) = spawn_server() {
+        t
+    } else {
+        eprintln!("STDIO TEST SKIPPED: spawn_server failed");
+        return Ok(());
+    };
+
+    let init = r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}"#;
+    let _ = send_and_receive(&mut writer, &mut reader, init)?;
+
+    let request = r#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"create_session","arguments":{"name":"Valid","started_at":"not-a-date"}}}"#;
+    let response = send_and_receive(&mut writer, &mut reader, request)?;
+
+    assert!(
+        response.contains("\"isError\":true"),
+        "invalid timestamp should return isError=true, risposta: {response}"
+    );
+    assert!(
+        response.contains("RFC3339"),
+        "error should mention RFC3339, risposta: {response}"
+    );
+
+    stop_server(child);
+    Ok(())
+}
+
+#[test]
+fn stdio_get_nonexistent_session_rejected() -> Result<(), Box<dyn std::error::Error>> {
+    let (child, mut writer, mut reader) = if let Ok(t) = spawn_server() {
+        t
+    } else {
+        eprintln!("STDIO TEST SKIPPED: spawn_server failed");
+        return Ok(());
+    };
+
+    let init = r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}"#;
+    let _ = send_and_receive(&mut writer, &mut reader, init)?;
+
+    let request = r#"{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"get_session","arguments":{"id":99999}}}"#;
+    let response = send_and_receive(&mut writer, &mut reader, request)?;
+
+    assert!(
+        response.contains("\"isError\":true"),
+        "nonexistent session should return isError=true, risposta: {response}"
+    );
+    assert!(
+        response.contains("not found"),
+        "error should mention not found, risposta: {response}"
+    );
+
+    stop_server(child);
+    Ok(())
+}

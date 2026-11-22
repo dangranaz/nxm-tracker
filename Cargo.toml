@@ -1,6 +1,6 @@
 [package]
 name = "nxm_tracker"
-version = "0.10.0"
+version = "1.0.0"
 edition = "2021"
 license = "PolyForm Noncommercial 1.0.0"
 description = "Tracker for long, multi-day work sessions and the integrated feature sessions created after the design phase"

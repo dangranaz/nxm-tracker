@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `0.10.0` |
+| **Versione** | `1.0.0` |
 | **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
 | **Ultimo tag** | `v0.7.2` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
@@ -108,6 +108,7 @@ nxm-tracker/
 │   ├── config.rs            # TrackerConfig (nxm-config wrapper)
 │   ├── database.rs          # Database (nxm-db wrapper + default_migration_set)
 │   ├── error.rs             # TrackerError (Config + Logging + Database + InvalidSessionStatus)
+│   ├── git_workspace.rs     # Git workspace helpers (is_git_repo, base_branch, create_integration_branch, sanitize_branch_name)
 │   ├── lib.rs               # Esporta API pubblica
 │   ├── logging.rs           # init_logging() (nxm-logging wrapper)
 │   ├── main.rs              # Entry point: logging → config → db → migration → registra tool MCP → serve
@@ -118,18 +119,30 @@ nxm-tracker/
 │   ├── config_test.rs
 │   ├── database_test.rs
 │   ├── examples_test.rs          # Verifica esempi in docs/examples/ (4 test)
+│   ├── git_workspace_test.rs     # Git workspace helpers (10 test)
 │   ├── lib_test.rs
 │   ├── logging_test.rs
-│   ├── mcp_tools_test.rs         # MCP tools integration tests (11 test)
+│   ├── mcp_tools_test.rs         # MCP tools integration tests (15 test)
 │   ├── scripts_test.rs           # trackerUp/trackerDown (3 test)
-│   ├── session_test.rs           # Session model integration tests (11 test)
-│   └── stdio_test.rs             # Trasporto stdio end-to-end (4 test)
-├── LICENSE.md               # PolyForm Noncommercial 1.0.0
-├── README.md                # Aggiornato con banner + licenza
+│   ├── session_test.rs           # Session model integration tests (14 test)
+│   └── stdio_test.rs             # Trasporto stdio end-to-end (7 test)
+├── LICENSE               # PolyForm Noncommercial 1.0.0 (senza estensione)
+├── LICENSE.md            # PolyForm Noncommercial 1.0.0
+├── README.md             # Aggiornato con banner + licenza
 ├── CHANGELOG.md
 ├── CONTEXT.md
-├── HANDOFF.md               # Questo documento
-└── Cargo.toml
+├── HANDOFF.md            # Questo documento
+├── Cargo.toml
+├── docs/
+│   ├── architecture/     # architecture.md
+│   ├── api/              # api.md
+│   ├── examples/         # Esempi d'uso (6 file Rust + mcp_payloads.md)
+│   ├── superpowers/      # piani e specifiche esistenti
+│   └── user-guide.md     # Guida utente per i tool MCP (v1.0.0)
+└── scripts/
+    ├── build.sh          # Build release + copia in builds/
+    ├── trackerUp         # Avvia nxm-tracker MCP server in background
+    └── trackerDown       # Ferma nxm-tracker MCP server
 ```
 
 ---
@@ -177,9 +190,17 @@ nxm-tracker/
    - Creazione branch `integration_<short>` da `develop`/`master`/`main`
    - 10 test in `tests/git_workspace_test.rs`
 
-### Prossimi passi (v1.0.0, lungo termine)
+### ✅ v1.0.0 completato (Production ready)
 
-Vedi `ROADMAP.md` per la roadmap completa.
+- Validazione input su tutti e 8 gli tool MCP
+- Gestione errori con `isError=true` e messaggi descrittivi
+- Test end-to-end su trasporto stdio reale
+- Documentazione utente: `docs/user-guide.md`
+- Bump versione a `1.0.0`
+
+### Prossimi passi (post-v1.0, opzionali)
+
+Vedi `ROADMAP.md` per la roadmap completa (integrazione con `nxm-conductor`/`nxm-cortexdb`, notifiche/webhook, export/import, metriche/dashboard).
 
 ---
 
