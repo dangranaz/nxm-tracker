@@ -3,13 +3,19 @@ set -euo pipefail
 
 # Script: trackerUp
 # Avvia il server MCP nxm-tracker in background.
-# Il binario release deve già esistere in builds/ (eseguire prima scripts/build.sh se necessario).
+# Il server espone JSON-RPC su stdio (stdin/stdout). Per mantenerlo vivo in
+# background senza che riceva EOF su stdin, si usa una named pipe come stdin
+# tenuta aperta da un processo keepalive.
+#
+# Prerequisito: eseguire prima scripts/build.sh per compilare il binario release.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILDS_DIR="$PROJECT_DIR/builds"
 BINARY="$BUILDS_DIR/nxm-tracker"
 PID_FILE="$BUILDS_DIR/nxm-tracker.pid"
+KEEPALIVE_FILE="$BUILDS_DIR/nxm-tracker.keepalive"
+STDIN_PIPE="$BUILDS_DIR/nxm-tracker.stdin"
 LOG_FILE="$BUILDS_DIR/nxm-tracker.log"
 
 echo "==> Avvio nxm-tracker MCP server"
@@ -21,8 +27,9 @@ if [[ -f "$PID_FILE" ]]; then
         echo "==> nxm-tracker è già attivo (PID $OLD_PID)"
         exit 0
     fi
-    # PID file orfano: rimuovilo.
-    rm -f "$PID_FILE"
+    # PID file orfano: pulizia.
+    rm -f "$PID_FILE" "$KEEPALIVE_FILE"
+    rm -f "$STDIN_PIPE"
 fi
 
 # Se il binario non esiste, costruiscilo.
@@ -31,10 +38,42 @@ if [[ ! -x "$BINARY" ]]; then
     "$SCRIPT_DIR/build.sh"
 fi
 
-# Avvia il server in background (stdio MCP). I log vanno in builds/nxm-tracker.log.
-nohup "$BINARY" > "$LOG_FILE" 2>&1 &
-echo $! > "$PID_FILE"
+# Crea una named pipe per stdin: il server la legge in blocco e non riceve mai
+# EOF, quindi rimane vivo anche in background.
+rm -f "$STDIN_PIPE"
+mkfifo "$STDIN_PIPE"
 
-echo "==> nxm-tracker avviato (PID $(cat "$PID_FILE"))"
+# Apri la pipe in lettura+scrittura nello script principale: su una FIFO,
+# aprire solo per scrittura si blocca finché non c'è un lettore. Con <>
+# l'apertura non si blocca e il fd resta ereditato dal keepalive.
+exec 3<>"$STDIN_PIPE"
+
+# Processo keepalive: tiene aperta l'estremità scrittura della named pipe
+# (ereditata da exec 3 sopra) affinché il server non veda mai EOF su stdin.
+# Chiude stdin/stdout/stderr ereditati per non tenere aperti i pipe di
+# processi parent (es. cargo test).
+(
+    exec 0<&-
+    exec 1>&-
+    exec 2>&-
+    while true; do
+        sleep 3600
+    done
+) &
+echo $! > "$KEEPALIVE_FILE"
+
+# Chiudi tutti i file descriptor ereditati (>=4) per evitare che il server
+# tenga aperti pipe ereditati da processi parent (es. cargo test).
+for fd in $(seq 4 255); do
+    eval "exec $fd>&-" 2>/dev/null || true
+done
+
+# Avvia il server leggendo dalla named pipe. setsid lo stacca dalla sessione
+# del chiamante così non eredita terminale né pipe di output.
+setsid "$BINARY" < "$STDIN_PIPE" > "$LOG_FILE" 2>&1 &
+SERVER_PID=$!
+echo $SERVER_PID > "$PID_FILE"
+
+echo "==> nxm-tracker avviato (PID $SERVER_PID)"
 echo "==> Log: $LOG_FILE"
 echo "==> Per fermarlo: ./scripts/trackerDown"

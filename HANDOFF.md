@@ -101,7 +101,9 @@ nxm-tracker/
 │   ├── api/                 # api.md (riferimento API pubblica con esempi)
 │   └── superpowers/         # piani e specifiche esistenti
 ├── scripts/
-│   └── build.sh             # Build release + copia in builds/
+│   ├── build.sh             # Build release + copia in builds/
+│   ├── trackerUp            # Avvia nxm-tracker MCP server in background
+│   └── trackerDown          # Ferma nxm-tracker MCP server
 ├── src/
 │   ├── config.rs            # TrackerConfig (nxm-config wrapper)
 │   ├── database.rs          # Database (nxm-db wrapper + default_migration_set)
@@ -115,10 +117,13 @@ nxm-tracker/
 ├── tests/
 │   ├── config_test.rs
 │   ├── database_test.rs
+│   ├── examples_test.rs          # Verifica esempi in docs/examples/ (4 test)
 │   ├── lib_test.rs
 │   ├── logging_test.rs
-│   ├── session_test.rs      # Session model integration tests (11 tests)
-│   └── mcp_tools_test.rs    # MCP tools integration tests (11 tests)
+│   ├── mcp_tools_test.rs         # MCP tools integration tests (11 test)
+│   ├── scripts_test.rs           # trackerUp/trackerDown (3 test)
+│   ├── session_test.rs           # Session model integration tests (11 test)
+│   └── stdio_test.rs             # Trasporto stdio end-to-end (4 test)
 ├── LICENSE.md               # PolyForm Noncommercial 1.0.0
 ├── README.md                # Aggiornato con banner + licenza
 ├── CHANGELOG.md

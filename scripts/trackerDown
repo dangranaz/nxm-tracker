@@ -3,12 +3,14 @@ set -euo pipefail
 
 # Script: trackerDown
 # Ferma il server MCP nxm-tracker avviato con trackerUp.
-# Legge il PID da builds/nxm-tracker.pid e invia SIGTERM.
+# Uccide il server, il processo keepalive e rimuove i file di supporto.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILDS_DIR="$PROJECT_DIR/builds"
 PID_FILE="$BUILDS_DIR/nxm-tracker.pid"
+KEEPALIVE_FILE="$BUILDS_DIR/nxm-tracker.keepalive"
+STDIN_PIPE="$BUILDS_DIR/nxm-tracker.stdin"
 
 echo "==> Arresto nxm-tracker MCP server"
 
@@ -19,26 +21,37 @@ fi
 
 PID="$(cat "$PID_FILE")"
 
-if ! kill -0 "$PID" 2>/dev/null; then
-    echo "==> Processo PID $PID non in esecuzione. Rimuovo PID file orfano."
-    rm -f "$PID_FILE"
-    exit 0
+if kill -0 "$PID" 2>/dev/null; then
+    kill "$PID" 2>/dev/null || true
+
+    # Attendi che il processo termini (max ~5 secondi).
+    for i in $(seq 1 50); do
+        if ! kill -0 "$PID" 2>/dev/null; then
+            echo "==> nxm-tracker fermato (PID $PID)"
+            break
+        fi
+        sleep 0.1
+    done
+
+    # Se è ancora vivo, forzare con SIGKILL.
+    if kill -0 "$PID" 2>/dev/null; then
+        kill -9 "$PID" 2>/dev/null || true
+        echo "==> nxm-tracker terminato forzatamente (PID $PID)"
+    fi
+else
+    echo "==> Processo PID $PID non in esecuzione."
 fi
 
-kill "$PID"
-
-# Attendi che il processo termini (max ~5 secondi).
-for i in $(seq 1 50); do
-    if ! kill -0 "$PID" 2>/dev/null; then
-        echo "==> nxm-tracker fermato (PID $PID)"
-        rm -f "$PID_FILE"
-        exit 0
+# Ferma il processo keepalive se presente.
+if [[ -f "$KEEPALIVE_FILE" ]]; then
+    KPID="$(cat "$KEEPALIVE_FILE")"
+    if kill -0 "$KPID" 2>/dev/null; then
+        kill "$KPID" 2>/dev/null || true
     fi
-    sleep 0.1
-done
+    rm -f "$KEEPALIVE_FILE"
+fi
 
-# Se è ancora vivo, forzare con SIGKILL.
-echo "==> Processo non terminato dopo 5s. Invio SIGKILL."
-kill -9 "$PID" 2>/dev/null || true
-rm -f "$PID_FILE"
-echo "==> nxm-tracker terminato forzatamente (PID $PID)"
+# Rimuovi file di supporto.
+rm -f "$PID_FILE" "$STDIN_PIPE"
+
+echo "==> Fatto."

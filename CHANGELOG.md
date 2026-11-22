@@ -1,5 +1,18 @@
 # Changelog for nxm-tracker
 
+## 0.8.1 - 2026-11-22 (unreleased)
+- feat(tracker): add trackerUp/trackerDown lifecycle scripts
+  - add `scripts/trackerUp` — start nxm-tracker MCP server in background (named pipe + keepalive)
+  - add `scripts/trackerDown` — stop nxm-tracker MCP server (SIGTERM → SIGKILL, PID file cleanup)
+- feat(tracker): add stdio end-to-end tests
+  - add `tests/stdio_test.rs` — initialize, tools/list, tools/call create_session, parse error
+- feat(tracker): add trackerUp/trackerDown lifecycle tests
+  - add `tests/scripts_test.rs` — start, stop, idempotency
+- fix(nxm-mcp-server): flush stdio writer after each response
+  - `transport.rs`: call `writer.flush()` after every `writeln!`
+- fix(nxm-mcp-server): use `?` operator for notification check
+  - `dispatch.rs`: replace `if return None` with `req.id.as_ref()?`
+
 ## 0.8.0 - 2026-11-22
 - feat(tracker): add executable usage examples
   - add `docs/examples/create_and_get_session.rs` — create and read a session

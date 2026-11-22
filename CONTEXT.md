@@ -45,14 +45,19 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 - Tests in `tests/config_test.rs` (config integration), `tests/logging_test.rs`
   (logging integration), `tests/database_test.rs` (database integration),
   `tests/lib_test.rs` (product name smoke tests), `tests/session_test.rs`
-  (session model integration, 11 tests), and
-  `tests/mcp_tools_test.rs` (MCP tools integration, 11 tests).
+  (session model integration, 11 tests), `tests/mcp_tools_test.rs`
+  (MCP tools integration, 11 tests), `tests/stdio_test.rs` (stdio end-to-end,
+  4 tests), `tests/scripts_test.rs` (trackerUp/trackerDown lifecycle, 3 tests),
+  and `tests/examples_test.rs` (example files verification, 4 tests).
 - `SECURITY.md` — security policy with supported versions, vulnerability reporting process, disclosure timeline, security best practices
 
 ## Project layout
 
 - `docs/` — project documentation (architecture, API, etc.)
 - `scripts/` — build and release scripts
+  - `build.sh` — build release + copia in builds/
+  - `trackerUp` — avvia nxm-tracker MCP server in background
+  - `trackerDown` — ferma nxm-tracker MCP server
 - `builds/` — build artifacts
 - `src/` — Rust source code
 - `tests/` — integration tests
