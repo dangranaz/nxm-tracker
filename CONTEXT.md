@@ -17,7 +17,8 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
   - `serde_json` (1) for MCP tool arguments/results
   - `tokio` (1, rt) for blocking async sqlx calls in sync context
   - `nxm-mcp-server` (0.1.0, path dep) for MCP server shell (transport, tool registry, dispatch)
-- Version: 1.1.0
+- Version: 1.1.0-EE (Enterprise Edition, branch `ee`)
+- Documentazione dedicata: `docs/ee/` (presente solo su questo branch)
 - Schema DB: 15 migrations (v1-v15)
   - v1: `create_sessions`, v2: `create_feature_sessions`
   - v3: `create_lifecycle_state`, v4: `seed_lifecycle_state`

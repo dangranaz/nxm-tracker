@@ -10,7 +10,9 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `1.1.0` |
+| **Versione** | `1.1.0-EE` |
+| **Edizione** | Enterprise (privato, GitLab) |
+| **Documentazione EE** | `docs/ee/` (presente solo su questo branch) |
 | **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
 | **Ultimo tag** | `v0.7.2` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
@@ -105,6 +107,11 @@ nxm-tracker/
 ├── docs/
 │   ├── architecture/        # architecture.md (struttura moduli, flusso avvio, DB schema, stati sessione)
 │   ├── api/                 # api.md (riferimento API pubblica con esempi)
+│   ├── ee/                  # Documentazione Enterprise Edition (solo branch `ee`)
+│   │   ├── ee-overview.md        # Panoramica edizione Enterprise
+│   │   ├── ee-schema.md          # Schema DB con tabelle di audit
+│   │   ├── ee-mcp-tools.md       # Riferimento tool MCP Enterprise
+│   │   └── ee-security.md        # Sicurezza, audit trail, retention
 │   └── superpowers/         # piani e specifiche esistenti
 ├── scripts/
 │   ├── build.sh             # Build release + copia in builds/
@@ -204,7 +211,7 @@ nxm-tracker/
 - Documentazione utente: `docs/user-guide.md`
 - Bump versione a `1.0.0`
 
-### ✅ v1.1.0 completato (Porting da nxm-mcp-tracker-ee)
+### ✅ v1.1.0-EE completato (Enterprise Edition, branch `ee`)
 
 - Schema DB espanso da 2 a 15 migration (lifecycle_state, lifecycle_transition, session, audit_log, task, task_revision, task_audit, session_handoff, slug_counter, prompt, retention_log)
 - Domain model: Status (5 stati), Transition/Trigger (7 transizioni), ActionContext, TaskStatus (6 stati)
@@ -212,12 +219,12 @@ nxm-tracker/
 - Scritture: create_session, transition_session, update_session (handoff), register_prompt, mark_consumed
 - Letture: get_session, list_sessions, find_resumable_session, get_current_handoff, list_handoff_revisions
 - Task: create_task, revise_task, set_task_status, close_task, get_task, list_session_tasks, list_open_tasks
+- 11 nuovi tool MCP esposti (create_session lifecycle, transition_session, update_session, mark_consumed, register_prompt, create_task, revise_task, set_task_status, close_task, get_task, list_session_tasks, list_open_tasks, list_lifecycle_states, list_lifecycle_transitions)
+- Documentazione dedicata in `docs/ee/` (presente solo su questo branch)
 
-### Prossimi passi (v1.2.0)
+### Prossimi passi (v1.2.0-EE)
 
-1. Esporre i nuovi tool MCP (`mark_consumed`, `register_prompt`, `create_task`, `revise_task`, `set_task_status`, `close_task`, `get_task`, `list_session_tasks`, `list_open_tasks`, `list_lifecycle_states`, `list_lifecycle_transitions`)
-2. Aggiornare `main.rs` per usare il nuovo repository e schema DB
-3. Test di integrazione per le nuove scritture/letture
+Test di integrazione per le nuove scritture/letture EE.
 
 Vedi `ROADMAP.md` per la roadmap completa (v1.2.0, post-v1.0 con integrazione nxm-conductor/nxm-cortexdb, notifiche/webhook, export/import, metriche/dashboard).
 
