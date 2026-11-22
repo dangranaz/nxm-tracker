@@ -52,5 +52,4 @@ Before committing:
 
 - Public APIs: `///` doc comments with at least one example.
 - End of session: update `CONTEXT.md` and `CHANGELOG.md`.
-- Every design/analysis/plan doc lives in `nxm-docs/` (or inside the product if it concerns a single product), bilingual (`_ITA` / `_ENG`).
-- The code repo keeps only RULES/CONTEXT/STATUS/CHANGELOG.
+- Project documentation lives under `docs/` and MUST follow `rules/DOCUMENTATION.md`, including its bilingual naming and content requirements.

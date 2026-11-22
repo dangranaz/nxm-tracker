@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `0.8.0` |
+| **Versione** | `0.8.1` |
 | **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
 | **Ultimo tag** | `v0.7.2` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |

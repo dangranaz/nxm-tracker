@@ -1,6 +1,6 @@
 # Changelog for nxm-tracker
 
-## 0.8.1 - 2026-11-22 (unreleased)
+## 0.8.1 - 2026-11-22
 - feat(tracker): add trackerUp/trackerDown lifecycle scripts
   - add `scripts/trackerUp` — start nxm-tracker MCP server in background (named pipe + keepalive)
   - add `scripts/trackerDown` — stop nxm-tracker MCP server (SIGTERM → SIGKILL, PID file cleanup)
