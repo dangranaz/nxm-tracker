@@ -8,6 +8,7 @@
 mod config;
 mod database;
 mod error;
+pub mod git_workspace;
 mod logging;
 mod mcp_tools;
 mod session;

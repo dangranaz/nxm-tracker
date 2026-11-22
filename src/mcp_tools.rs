@@ -8,6 +8,7 @@
 
 use std::sync::Arc;
 
+use crate::git_workspace::{base_branch, create_integration_branch, is_git_repo};
 use crate::session::{NewFeatureSession, NewSession, SessionRepository, SessionStatus};
 use crate::session_repository::SqliteSessionRepository;
 use nxm_mcp_server::mcp::tool::McpTool;
@@ -92,7 +93,8 @@ impl_mcp_tool!(
     schema_object(
         json!({
             "name": { "type": "string", "description": "Session name" },
-            "started_at": { "type": "string", "description": "Start timestamp (RFC3339)" }
+            "started_at": { "type": "string", "description": "Start timestamp (RFC3339)" },
+            "working_directory": { "type": "string", "description": "Path to a git project (optional). If set, an integration branch is created before the session." }
         }),
         vec!["name", "started_at"]
     )
@@ -102,6 +104,16 @@ impl CreateSessionTool {
     pub fn execute(&self, args: &Value) -> Result<Value, String> {
         let name = get_str(args, "name")?;
         let started_at = get_str(args, "started_at")?;
+        let working_directory = get_opt_str(args, "working_directory");
+
+        // If a working directory is provided, ensure it is a git repository and
+        // create an integration branch before creating the session.
+        if let Some(path) = working_directory {
+            is_git_repo(&path).map_err(|e| format!("invalid git workspace: {e}"))?;
+            let base = base_branch(&path).map_err(|e| format!("no base branch in {path}: {e}"))?;
+            create_integration_branch(&path, &base, &name)
+                .map_err(|e| format!("failed to create integration branch: {e}"))?;
+        }
 
         let new = NewSession { name, started_at };
 

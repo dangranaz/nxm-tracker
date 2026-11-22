@@ -1,5 +1,12 @@
 # Changelog for nxm-tracker
 
+## 0.10.0 - 2026-11-22
+- feat(tracker): git workspace integration for session creation
+  - add `src/git_workspace.rs` with `is_git_repo`, `base_branch`, `create_integration_branch`, `sanitize_branch_name`
+  - add optional `working_directory` argument to `create_session` MCP tool
+  - when `working_directory` is set, verify it is a git repo and create `integration_<short>` branch from `develop`/`master`/`main` before creating the session
+  - add `tests/git_workspace_test.rs` (10 tests)
+
 ## 0.9.0 - 2026-11-22
 - feat(tracker): expand repository query operations
   - add `SessionRepository::search_sessions_by_name` — case-insensitive name search

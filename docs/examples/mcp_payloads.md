@@ -19,13 +19,20 @@ In caso di errore, `isError` è `true` e `text` contiene il messaggio descrittiv
 
 Crea una nuova sessione di lavoro.
 
-**Request:**
+**Request (minimo):**
 ```json
 {
   "name": "Refactoring Q4",
   "started_at": "2026-11-20T08:00:00+01:00"
-}
-```
+}```
+
+**Request (con working_directory per integrazione git):**
+```json
+{
+  "name": "Refactoring Q4",
+  "started_at": "2026-11-20T08:00:00+01:00",
+  "working_directory": "/percorso/al/progetto/git"
+}```
 
 **Response (esempio):**
 ```json

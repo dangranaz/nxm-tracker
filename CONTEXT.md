@@ -48,7 +48,8 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
   (session model integration, 14 tests), `tests/mcp_tools_test.rs`
   (MCP tools integration, 11 tests), `tests/stdio_test.rs` (stdio end-to-end,
   4 tests), `tests/scripts_test.rs` (trackerUp/trackerDown lifecycle, 3 tests),
-  and `tests/examples_test.rs` (example files verification, 4 tests).
+  and `tests/examples_test.rs` (example files verification, 4 tests), and
+  `tests/git_workspace_test.rs` (git workspace helpers, 10 tests).
 - `SECURITY.md` — security policy with supported versions, vulnerability reporting process, disclosure timeline, security best practices
 
 ## Project layout
@@ -64,7 +65,7 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 ## Next increment
 
-Repository pattern espanduto con query aggiuntive (search per nome, filtro per stato, paginazione) e file `LICENSE` senza estensione aggiunti nella release v0.9.0. Prossimo incremento: v1.0.0 (validazione input MCP, test end-to-end stdio, guida utente, gestione errori migliorata).
+Repository pattern espanduto (v0.9.0), integrazione git workspace per creazione sessione con branch `integration_<short>` (v0.10.0). Prossimo incremento: v1.0.0 (validazione input MCP, test end-to-end stdio, guida utente, gestione errori migliorata).
 
 Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale e
 pianificazione futura (v0.8.0, v0.9.0, v1.0.0, post-v1.0).

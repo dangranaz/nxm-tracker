@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `0.9.0` |
+| **Versione** | `0.10.0` |
 | **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
 | **Ultimo tag** | `v0.7.2` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
@@ -171,6 +171,11 @@ nxm-tracker/
    - Test di integrazione in `tests/session_test.rs`
 3. ✅ **File `LICENSE` senza estensione** — completato in v0.9.0
    - Creato `LICENSE` come copia di `LICENSE.md`
+4. ✅ **Integrazione git workspace per creazione sessione** — completato in v0.10.0
+   - `src/git_workspace.rs` con `is_git_repo`, `base_branch`, `create_integration_branch`, `sanitize_branch_name`
+   - Parametro opzionale `working_directory` su `create_session`
+   - Creazione branch `integration_<short>` da `develop`/`master`/`main`
+   - 10 test in `tests/git_workspace_test.rs`
 
 ### Prossimi passi (v1.0.0, lungo termine)
 
