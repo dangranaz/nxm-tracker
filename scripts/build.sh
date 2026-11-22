@@ -14,6 +14,7 @@ cargo build --release
 
 echo "==> Copying artifacts to $BUILDS_DIR"
 mkdir -p "$BUILDS_DIR"
-cp "target/release/nxm-tracker" "$BUILDS_DIR/"
+TARGET_DIR="${CARGO_TARGET_DIR:-target}"
+cp "$TARGET_DIR/release/nxm-tracker" "$BUILDS_DIR/"
 
 echo "==> Build complete: $BUILDS_DIR/nxm-tracker"
