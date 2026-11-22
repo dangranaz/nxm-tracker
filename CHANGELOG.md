@@ -1,5 +1,57 @@
 # Changelog for nxm-tracker
 
+## 1.0.0 - 2026-11-22
+- feat(tracker): input validation for all MCP tools
+  - validate non-empty names for `create_session` and `create_feature_session`
+  - validate RFC3339 timestamps for `create_session`
+  - validate session existence for `get_session`, `update_session`, `close_session`, `set_design_phase_complete`, `create_feature_session`, `list_feature_sessions`
+  - all tools return `isError=true` with descriptive message on invalid input
+- feat(tracker): end-to-end stdio tests
+  - add validation tests via stdio transport (empty name, invalid timestamp, nonexistent session)
+- docs(tracker): user guide
+  - add `docs/user-guide.md` with complete reference for all 8 MCP tools
+  - add server startup/stop instructions (`trackerUp`, `trackerDown`)
+  - add session states table and validation error reference
+
+## 0.10.0 - 2026-11-22
+- feat(tracker): git workspace integration for session creation
+  - add `src/git_workspace.rs` with `is_git_repo`, `base_branch`, `create_integration_branch`, `sanitize_branch_name`
+  - add optional `working_directory` argument to `create_session` MCP tool
+  - when `working_directory` is set, verify it is a git repo and create `integration_<short>` branch from `develop`/`master`/`main` before creating the session
+  - add `tests/git_workspace_test.rs` (10 tests)
+
+## 0.9.0 - 2026-11-22
+- feat(tracker): expand repository query operations
+  - add `SessionRepository::search_sessions_by_name` — case-insensitive name search
+  - add `SessionRepository::list_sessions_by_status` — filter by status (open/paused/closed)
+  - add `SessionRepository::list_sessions_paginated` — offset/limit pagination
+  - add integration tests for all three new queries in `tests/session_test.rs`
+- fix(tracker): add LICENSE file without extension
+  - add `LICENSE` (copy of `LICENSE.md`) for third-party tool compatibility
+
+## 0.8.1 - 2026-11-22
+- feat(tracker): add trackerUp/trackerDown lifecycle scripts
+  - add `scripts/trackerUp` — start nxm-tracker MCP server in background (named pipe + keepalive)
+  - add `scripts/trackerDown` — stop nxm-tracker MCP server (SIGTERM → SIGKILL, PID file cleanup)
+- feat(tracker): add stdio end-to-end tests
+  - add `tests/stdio_test.rs` — initialize, tools/list, tools/call create_session, parse error
+- feat(tracker): add trackerUp/trackerDown lifecycle tests
+  - add `tests/scripts_test.rs` — start, stop, idempotency
+- fix(nxm-mcp-server): flush stdio writer after each response
+  - `transport.rs`: call `writer.flush()` after every `writeln!`
+- fix(nxm-mcp-server): use `?` operator for notification check
+  - `dispatch.rs`: replace `if return None` with `req.id.as_ref()?`
+
+## 0.8.0 - 2026-11-22
+- feat(tracker): add executable usage examples
+  - add `docs/examples/create_and_get_session.rs` — create and read a session
+  - add `docs/examples/update_session.rs` — update name/status/design_phase_complete
+  - add `docs/examples/close_session.rs` — close a session and set ended_at
+  - add `docs/examples/feature_sessions.rs` — create and list feature sessions
+  - add `docs/examples/full_workflow.rs` — complete end-to-end flow
+  - add `docs/examples/mcp_payloads.md` — JSON request/response payloads for all 8 MCP tools
+  - add `tests/examples_test.rs` — verifies example files exist and are well-formed
+
 ## 0.7.2 - 2026-11-21
 
 - docs(tracker): add SECURITY.md

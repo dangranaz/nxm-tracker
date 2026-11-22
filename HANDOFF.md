@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `0.7.2` |
+| **Versione** | `1.0.0` |
 | **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
 | **Ultimo tag** | `v0.7.2` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
@@ -101,11 +101,14 @@ nxm-tracker/
 │   ├── api/                 # api.md (riferimento API pubblica con esempi)
 │   └── superpowers/         # piani e specifiche esistenti
 ├── scripts/
-│   └── build.sh             # Build release + copia in builds/
+│   ├── build.sh             # Build release + copia in builds/
+│   ├── trackerUp            # Avvia nxm-tracker MCP server in background
+│   └── trackerDown          # Ferma nxm-tracker MCP server
 ├── src/
 │   ├── config.rs            # TrackerConfig (nxm-config wrapper)
 │   ├── database.rs          # Database (nxm-db wrapper + default_migration_set)
 │   ├── error.rs             # TrackerError (Config + Logging + Database + InvalidSessionStatus)
+│   ├── git_workspace.rs     # Git workspace helpers (is_git_repo, base_branch, create_integration_branch, sanitize_branch_name)
 │   ├── lib.rs               # Esporta API pubblica
 │   ├── logging.rs           # init_logging() (nxm-logging wrapper)
 │   ├── main.rs              # Entry point: logging → config → db → migration → registra tool MCP → serve
@@ -115,16 +118,31 @@ nxm-tracker/
 ├── tests/
 │   ├── config_test.rs
 │   ├── database_test.rs
+│   ├── examples_test.rs          # Verifica esempi in docs/examples/ (4 test)
+│   ├── git_workspace_test.rs     # Git workspace helpers (10 test)
 │   ├── lib_test.rs
 │   ├── logging_test.rs
-│   ├── session_test.rs      # Session model integration tests (11 tests)
-│   └── mcp_tools_test.rs    # MCP tools integration tests (11 tests)
-├── LICENSE.md               # PolyForm Noncommercial 1.0.0
-├── README.md                # Aggiornato con banner + licenza
+│   ├── mcp_tools_test.rs         # MCP tools integration tests (15 test)
+│   ├── scripts_test.rs           # trackerUp/trackerDown (3 test)
+│   ├── session_test.rs           # Session model integration tests (14 test)
+│   └── stdio_test.rs             # Trasporto stdio end-to-end (7 test)
+├── LICENSE               # PolyForm Noncommercial 1.0.0 (senza estensione)
+├── LICENSE.md            # PolyForm Noncommercial 1.0.0
+├── README.md             # Aggiornato con banner + licenza
 ├── CHANGELOG.md
 ├── CONTEXT.md
-├── HANDOFF.md               # Questo documento
-└── Cargo.toml
+├── HANDOFF.md            # Questo documento
+├── Cargo.toml
+├── docs/
+│   ├── architecture/     # architecture.md
+│   ├── api/              # api.md
+│   ├── examples/         # Esempi d'uso (6 file Rust + mcp_payloads.md)
+│   ├── superpowers/      # piani e specifiche esistenti
+│   └── user-guide.md     # Guida utente per i tool MCP (v1.0.0)
+└── scripts/
+    ├── build.sh          # Build release + copia in builds/
+    ├── trackerUp         # Avvia nxm-tracker MCP server in background
+    └── trackerDown       # Ferma nxm-tracker MCP server
 ```
 
 ---
@@ -140,6 +158,7 @@ nxm-tracker/
 
 1. **btrfs metadata space** — su questo host i metadati btrfs di `/home` si esauriscono facilmente durante compilazioni pesanti (specialmente `clippy` con `nxm-db` che trascina `sqlx`, `tokio`, `mongodb`). Soluzione temporanea: usare `CARGO_TARGET_DIR=/tmp/...` o `cargo clean` prima di operazioni git.
 2. **LICENSE** — non esiste un file `LICENSE` (senza estensione), solo `LICENSE.md`. Il badge nel README punta a `LICENSE.md`.
+3. **AGENTS.md e .pi/** — non più tracciati da git (aggiunti a `.gitignore`). Sono documenti locali dell'agente, sincronizzati da `~/AiProjects/nexum/docs/configRust/`.
 
 ---
 
@@ -147,22 +166,55 @@ nxm-tracker/
 
 ### Priorità alta
 
-1. **Aggiungere esempi d'uso esecutibili** in `docs/examples/` o come blocchi di codice compilabili in `docs/api/api.md` e `docs/architecture/architecture.md` (creazione, lettura, update, chiusura sessione, feature session).
+1. ✅ **Aggiungere esempi d'uso esecutibili** — completato in v0.8.0
+   - `docs/examples/create_and_get_session.rs`
+   - `docs/examples/update_session.rs`
+   - `docs/examples/close_session.rs`
+   - `docs/examples/feature_sessions.rs`
+   - `docs/examples/full_workflow.rs`
+   - `docs/examples/mcp_payloads.md`
+   - `tests/examples_test.rs` (verifica che i file esistano e siano ben formati)
 
 ### Priorità media
 
-2. **Espandere repository pattern** — `SqliteSessionRepository` è già implementato; eventualmente aggiungere ulteriori operazioni query o altri backend.
-3. **Verificare il file `LICENSE`** (senza estensione) se richiesto da qualche tool di terze parti.
+2. ✅ **Espandere repository pattern** — completato in v0.9.0
+   - `search_sessions_by_name` — ricerca per nome (case-insensitive)
+   - `list_sessions_by_status` — filtro per stato (open/paused/closed)
+   - `list_sessions_paginated` — paginazione offset/limit
+   - Test di integrazione in `tests/session_test.rs`
+3. ✅ **File `LICENSE` senza estensione** — completato in v0.9.0
+   - Creato `LICENSE` come copia di `LICENSE.md`
+4. ✅ **Integrazione git workspace per creazione sessione** — completato in v0.10.0
+   - `src/git_workspace.rs` con `is_git_repo`, `base_branch`, `create_integration_branch`, `sanitize_branch_name`
+   - Parametro opzionale `working_directory` su `create_session`
+   - Creazione branch `integration_<short>` da `develop`/`master`/`main`
+   - 10 test in `tests/git_workspace_test.rs`
 
-Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale e pianificazione futura (v0.8.0, v0.9.0, v1.0.0, post-v1.0).
+### ✅ v1.0.0 completato (Production ready)
+
+- Validazione input su tutti e 8 gli tool MCP
+- Gestione errori con `isError=true` e messaggi descrittivi
+- Test end-to-end su trasporto stdio reale
+- Documentazione utente: `docs/user-guide.md`
+- Bump versione a `1.0.0`
+
+### Prossimi passi (post-v1.0, opzionali)
+
+Vedi `ROADMAP.md` per la roadmap completa (integrazione con `nxm-conductor`/`nxm-cortexdb`, notifiche/webhook, export/import, metriche/dashboard).
 
 ---
 
 ## Flusso operativo da seguire
 
-1. Modifiche in `~/AiProjects/nexum/mcpServers/nxm-tracker`
+### Sviluppo (branch `develop`)
+1. Modifiche in `~/AiProjects/nexum/mcpServers/nxm-tracker` su branch `develop`
 2. `cargo test --all-targets`, `cargo clippy --all-targets -- -D warnings`, `cargo fmt --all -- --check`
-3. `git add -A`, `git commit`, `git tag vX.Y.Z`
+3. `git add -A`, `git commit`, `git push origin develop` + `git push gitlab develop`
+
+### Release (branch `master`)
+1. `git checkout master`
+2. `git merge develop --no-ff`
+3. `git tag vX.Y.Z`
 4. `git push origin master` + `git push origin vX.Y.Z`
 5. `git push gitlab master` + `git push gitlab vX.Y.Z`
 6. `gh release create vX.Y.Z ...` (su GitHub)
