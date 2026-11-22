@@ -65,7 +65,9 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 ## Next increment
 
-✅ v1.0.0 completato (Production ready): validazione input MCP, test end-to-end stdio, guida utente (`docs/user-guide.md`), gestione errori migliorata. Prossimo incremento: post-v1.0 (integrazione con nxm-conductor/nxm-cortexdb, notifiche webhook, export/import, metriche).
+✅ v1.0.0 completato (Production ready): validazione input MCP, test end-to-end stdio, guida utente (`docs/user-guide.md`), gestione errori migliorata. Prossimo incremento: post-v1.0 (integrazione con nxm-conductor/nxm-cortexdb, notifiche webhook, metriche).
+
+L'esportazione/importazione sessioni (export/import) è riservata all'edizione Enterprise e deve essere implementata solo quando lo schema DB diventerà così complesso da richiedere una conversione del vecchio schema nel nuovo. Vedi `docs/ee/` sul branch `ee` per la documentazione Enterprise Edition.
 
 Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale e
-pianificazione futura (v0.8.0, v0.9.0, v1.0.0, post-v1.0).
+pianificazione futura (v0.8.0, v0.9.0, v1.0.0, v1.1.0-EE, post-v1.0).
