@@ -1,5 +1,38 @@
 # Changelog for nxm-tracker
 
+## 1.1.0 - 2026-11-22
+- feat(tracker): expand schema DB from nxm-mcp-tracker-ee (15 migration)
+  - add `lifecycle_state` (v3-v4) with 5 canonical states and seed data
+  - add `lifecycle_transition` (v5-v6) with 7 valid transitions and seed data
+  - add `session` (v7) with TEXT id, status FK, consumed_at/consumed_by
+  - add `audit_log` (v8) with full attribution (user, auth_method, ai_tool, ai_model, at)
+  - add `task`/`task_revision`/`task_audit` (v9-v11) for versioned tasks
+  - add `session_handoff` (v12) for versioned handoff revisions
+  - add `slug_counter` (v13) for monotonic session key minting
+  - add `prompt` (v14) for delegation brief registry
+  - add `retention_log` (v15) for audit purge trail
+- feat(tracker): domain model for lifecycle
+  - add `Status` enum (active/onhold/abandoned/done/superseded) with predicates
+  - add `Transition`/`Trigger` with valid transition set (7 entries)
+  - add `ActionContext` (user/ai_tool mandatory, ai_model optional)
+  - add `TaskStatus` enum (open/in_progress/done/superseded/blocked/cancelled)
+- feat(tracker): repository layer
+  - add `LifecycleRepo` trait (read-only: states, allowed_transitions)
+  - add `SqliteRepo` adapter on nxm-db pool
+  - add `MemoryRepo` in-memory fake for tests
+- feat(tracker): write operations
+  - add `create_session` — creates session + audit_log row (action="create")
+  - add `transition_session` — atomic status change + audit_log row
+  - add `update_session` — versioned handoff revision + audit_log row
+  - add `register_prompt` — prompt registry upsert (no audit)
+  - add `mark_consumed` — marks session superseded + consumed_at/consumed_by
+- feat(tracker): read operations
+  - add `get_session`, `list_sessions`, `find_resumable_session`
+  - add `get_current_handoff`, `list_handoff_revisions`
+- feat(tracker): task operations
+  - add `create_task`, `revise_task`, `set_task_status`, `close_task`
+  - add `get_task`, `list_session_tasks`, `list_open_tasks`
+
 ## 1.0.0 - 2026-11-22
 - feat(tracker): input validation for all MCP tools
   - validate non-empty names for `create_session` and `create_feature_session`

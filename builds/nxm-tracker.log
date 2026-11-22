@@ -1,0 +1,8 @@
+{"timestamp":"2026-11-22T11:15:06.641739Z","level":"INFO","fields":{"message":"loading configuration","path":"/home/daniele/.nxmconfig/config.toml"},"target":"nxm::config::load"}
+{"timestamp":"2026-11-22T11:15:06.641815Z","level":"INFO","fields":{"message":"configuration loaded"},"target":"nexum::tracker::main"}
+{"timestamp":"2026-11-22T11:15:06.643501Z","level":"INFO","fields":{"message":"EXIT open_sqlite","path":"/home/daniele/.nxm/shared-db/data.db","elapsed_ms":"0"},"target":"nxm_db::sqlite"}
+{"timestamp":"2026-11-22T11:15:06.643897Z","level":"INFO","fields":{"message":"EXIT open","backend":"Sqlite","elapsed_ms":"2"},"target":"nxm_db::runtime"}
+{"timestamp":"2026-11-22T11:15:06.643916Z","level":"INFO","fields":{"message":"database opened"},"target":"nexum::tracker::main"}
+{"timestamp":"2026-11-22T11:15:06.648120Z","level":"INFO","fields":{"message":"EXIT run_migrations","elapsed_ms":"1"},"target":"nxm_db::migrate"}
+{"timestamp":"2026-11-22T11:15:06.649939Z","level":"INFO","fields":{"message":"migrations applied"},"target":"nexum::tracker::main"}
+{"timestamp":"2026-11-22T11:15:06.650436Z","level":"INFO","fields":{"message":"MCP tools registered","tool_count":8},"target":"nexum::tracker::main"}

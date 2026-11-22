@@ -49,11 +49,37 @@ fn database_migration_set_applies() {
 }
 
 #[test]
-fn default_migration_set_has_two_migrations() {
+fn default_migration_set_has_fifteen_migrations() {
     let set = default_migration_set().expect("default migration set should be valid");
-    assert_eq!(set.migrations().len(), 2);
+    assert_eq!(set.migrations().len(), 15);
     assert_eq!(set.migrations()[0].version, 1);
     assert_eq!(set.migrations()[0].name, "create_sessions");
     assert_eq!(set.migrations()[1].version, 2);
     assert_eq!(set.migrations()[1].name, "create_feature_sessions");
+    assert_eq!(set.migrations()[2].version, 3);
+    assert_eq!(set.migrations()[2].name, "create_lifecycle_state");
+    assert_eq!(set.migrations()[3].version, 4);
+    assert_eq!(set.migrations()[3].name, "seed_lifecycle_state");
+    assert_eq!(set.migrations()[4].version, 5);
+    assert_eq!(set.migrations()[4].name, "create_lifecycle_transition");
+    assert_eq!(set.migrations()[5].version, 6);
+    assert_eq!(set.migrations()[5].name, "seed_lifecycle_transition");
+    assert_eq!(set.migrations()[6].version, 7);
+    assert_eq!(set.migrations()[6].name, "create_session");
+    assert_eq!(set.migrations()[7].version, 8);
+    assert_eq!(set.migrations()[7].name, "create_audit_log");
+    assert_eq!(set.migrations()[8].version, 9);
+    assert_eq!(set.migrations()[8].name, "create_task_table");
+    assert_eq!(set.migrations()[9].version, 10);
+    assert_eq!(set.migrations()[9].name, "create_task_revision_table");
+    assert_eq!(set.migrations()[10].version, 11);
+    assert_eq!(set.migrations()[10].name, "create_task_audit_table");
+    assert_eq!(set.migrations()[11].version, 12);
+    assert_eq!(set.migrations()[11].name, "create_session_handoff");
+    assert_eq!(set.migrations()[12].version, 13);
+    assert_eq!(set.migrations()[12].name, "create_slug_counter");
+    assert_eq!(set.migrations()[13].version, 14);
+    assert_eq!(set.migrations()[13].name, "create_prompt");
+    assert_eq!(set.migrations()[14].version, 15);
+    assert_eq!(set.migrations()[14].name, "create_retention_log");
 }

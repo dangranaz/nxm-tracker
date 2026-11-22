@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `1.0.0` |
+| **Versione** | `1.1.0` |
 | **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
 | **Ultimo tag** | `v0.7.2` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
@@ -58,23 +58,28 @@ del lavoro svolto e di quanto resta da implementare.
 
 ---
 
-## Test (31/31 passati)
+## Test (78/78 passati)
 
 | File | Test |
 |------|------|
 | `tests/lib_test.rs` | `product_name_is_the_canonical_binary_name`, `product_name_matches_the_cargo_package_name` |
 | `tests/config_test.rs` | `tracker_config_loads_with_defaults_from_temp_root`, `tracker_config_save_and_load_roundtrip`, `tracker_config_custom_values_persist` |
 | `tests/logging_test.rs` | `init_logging_first_wins` |
-| `tests/database_test.rs` | `database_opens_in_temp_directory`, `database_migration_set_applies`, `default_migration_set_has_two_migrations` |
+| `tests/database_test.rs` | `database_opens_in_temp_directory`, `database_migration_set_applies`, `default_migration_set_has_fifteen_migrations` |
 | `tests/session_test.rs` | `create_and_get_session`, `get_nonexistent_session_returns_none`, `list_sessions_returns_all_ordered`, `set_session_status_changes_status`, `set_session_status_nonexistent_returns_false`, `close_session_sets_ended_at_and_status`, `close_nonexistent_session_returns_false`, `set_design_phase_complete_toggles_flag`, `create_and_list_feature_sessions`, `list_feature_sessions_empty_for_session_without_features`, `feature_session_belongs_to_correct_session` |
 | `tests/mcp_tools_test.rs` | `create_session_tool`, `get_session_tool`, `get_nonexistent_session_tool`, `list_sessions_tool`, `update_session_tool_changes_name_and_status`, `update_session_tool_sets_design_phase_complete`, `update_session_tool_nonexistent`, `close_session_tool`, `close_nonexistent_session_tool`, `set_design_phase_complete_tool`, `create_and_list_feature_sessions_tool` |
+| `tests/stdio_test.rs` | `stdio_initialize_returns_protocol_and_server_info`, `stdio_tools_list_returns_eight_tools`, `stdio_tools_call_create_session_returns_id`, `stdio_invalid_json_returns_parse_error`, `stdio_create_session_empty_name_rejected`, `stdio_create_session_invalid_timestamp_rejected`, `stdio_get_nonexistent_session_rejected` |
+| `tests/scripts_test.rs` | `tracker_down_without_pid_file_is_not_an_error`, `tracker_up_starts_server_and_creates_pid_file`, `tracker_up_when_already_running_is_idempotent` |
+| `tests/examples_test.rs` | `docs_examples_directory_exists`, `all_required_examples_exist`, `rust_examples_contain_main_function`, `mcp_payloads_covers_all_eight_tools` |
+| `tests/git_workspace_test.rs` | `sanitize_branch_name_basic`, `sanitize_branch_name_length_limit`, `is_git_repo_fails_on_non_git_directory`, `is_git_repo_succeeds_on_git_directory`, `base_branch_returns_develop_first`, `base_branch_returns_master_when_no_develop`, `base_branch_returns_main_when_no_develop_or_master`, `base_branch_fails_without_develop_master_main`, `create_integration_branch_creates_named_branch`, `create_integration_branch_from_master` |
+| `domain` unit tests | `status_as_str_matches_db_values`, `status_predicates_match_seed_data`, `status_try_from_string_roundtrip`, `status_try_from_invalid_errors`, `valid_transitions_match_seed_count`, `is_transition_allowed_known`, `is_transition_allowed_unknown`, `trigger_try_from_string_roundtrip`, `trigger_try_from_invalid_errors`, `action_context_valid`, `action_context_empty_user_rejected`, `action_context_empty_ai_tool_rejected`, `auth_method_parse`, `task_status_as_str_matches_db_values`, `task_status_predicates`, `task_status_try_from_string_roundtrip`, `task_status_try_from_invalid_errors`, `memory_returns_seed_states`, `memory_returns_seed_transitions`, `memory_with_custom_seed`, `valid_transitions_has_seven_entries` |
 
 ---
 
 ## Qualità gate
 
 - `cargo build` ✅
-- `cargo test --all-targets` ✅ (31/31)
+- `cargo test --all-targets` ✅ (78/78)
 - `cargo clippy --all-targets --all-features -- -D warnings` ✅ (eseguito con `CARGO_TARGET_DIR=/tmp` per evitare esaurimento metadati btrfs)
 - `cargo fmt --all -- --check` ✅
 
@@ -87,6 +92,7 @@ del lavoro svolto e di quanto resta da implementare.
   (validate ✅, deliver ✅ 9/9 artifact checks)
 - Documentazione API: `docs/api/api.md`
 - Documentazione architettura: `docs/architecture/architecture.md`
+- Guida utente: `docs/user-guide.md` (v1.0.0)
 
 ---
 
@@ -198,9 +204,22 @@ nxm-tracker/
 - Documentazione utente: `docs/user-guide.md`
 - Bump versione a `1.0.0`
 
-### Prossimi passi (post-v1.0, opzionali)
+### ✅ v1.1.0 completato (Porting da nxm-mcp-tracker-ee)
 
-Vedi `ROADMAP.md` per la roadmap completa (integrazione con `nxm-conductor`/`nxm-cortexdb`, notifiche/webhook, export/import, metriche/dashboard).
+- Schema DB espanso da 2 a 15 migration (lifecycle_state, lifecycle_transition, session, audit_log, task, task_revision, task_audit, session_handoff, slug_counter, prompt, retention_log)
+- Domain model: Status (5 stati), Transition/Trigger (7 transizioni), ActionContext, TaskStatus (6 stati)
+- Repository: LifecycleRepo trait, SqliteRepo, MemoryRepo
+- Scritture: create_session, transition_session, update_session (handoff), register_prompt, mark_consumed
+- Letture: get_session, list_sessions, find_resumable_session, get_current_handoff, list_handoff_revisions
+- Task: create_task, revise_task, set_task_status, close_task, get_task, list_session_tasks, list_open_tasks
+
+### Prossimi passi (v1.2.0)
+
+1. Esporre i nuovi tool MCP (`mark_consumed`, `register_prompt`, `create_task`, `revise_task`, `set_task_status`, `close_task`, `get_task`, `list_session_tasks`, `list_open_tasks`, `list_lifecycle_states`, `list_lifecycle_transitions`)
+2. Aggiornare `main.rs` per usare il nuovo repository e schema DB
+3. Test di integrazione per le nuove scritture/letture
+
+Vedi `ROADMAP.md` per la roadmap completa (v1.2.0, post-v1.0 con integrazione nxm-conductor/nxm-cortexdb, notifiche/webhook, export/import, metriche/dashboard).
 
 ---
 

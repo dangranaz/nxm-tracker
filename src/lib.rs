@@ -7,12 +7,17 @@
 
 mod config;
 mod database;
+mod domain;
 mod error;
 pub mod git_workspace;
 mod logging;
 mod mcp_tools;
+mod reads;
+mod repo;
 mod session;
 mod session_repository;
+mod tasks;
+mod writes;
 
 pub use config::TrackerConfig;
 pub use database::{default_migration_set, Database};
