@@ -11,9 +11,9 @@ del lavoro svolto e di quanto resta da implementare.
 |-------|--------|
 | **Crate** | `nxm_tracker` |
 | **Versione** | `1.0.0` |
-| **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
-| **Ultimo tag** | `v0.7.2` su entrambi i remote |
-| **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
+| **Ultimo commit** | `0595deb` — merge(gitlab): allinea master con release v1.0.0 |
+| **Ultimo tag** | `v1.0.0` su entrambi i remote |
+| **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v1.0.0 |
 | **Posizione locale** | `~/AiProjects/nexum/mcpServers/nxm-tracker` |
 | **Copia pubblicazione** | `~/AiProjects/dangranaz/nxm-tracker` |
 | **Remote GitHub** | `dangranaz/nxm-tracker` (public) |
@@ -157,8 +157,7 @@ nxm-tracker/
 ## Problemi noti
 
 1. **btrfs metadata space** — su questo host i metadati btrfs di `/home` si esauriscono facilmente durante compilazioni pesanti (specialmente `clippy` con `nxm-db` che trascina `sqlx`, `tokio`, `mongodb`). Soluzione temporanea: usare `CARGO_TARGET_DIR=/tmp/...` o `cargo clean` prima di operazioni git.
-2. **LICENSE** — non esiste un file `LICENSE` (senza estensione), solo `LICENSE.md`. Il badge nel README punta a `LICENSE.md`.
-3. **AGENTS.md e .pi/** — non più tracciati da git (aggiunti a `.gitignore`). Sono documenti locali dell'agente, sincronizzati da `~/AiProjects/nexum/docs/configRust/`.
+2. **AGENTS.md e .pi/** — non più tracciati da git (aggiunti a `.gitignore`). Sono documenti locali dell'agente, sincronizzati da `~/AiProjects/nexum/docs/configRust/`.
 
 ---
 

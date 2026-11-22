@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](LICENSE.md)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![MCP](https://img.shields.io/badge/MCP-JSON--RPC%20stdio-5A4FCF)](#mcp-configuration)
-[![Version](https://img.shields.io/badge/version-0.7.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
 
 **Tracker for long, multi-day work sessions — part of the NXM platform**
 
@@ -56,7 +56,7 @@ feature sessions are created so the work can be managed correctly across days.
 
 ## Status
 
-**Implemented (v0.7.0).** Session-tracking logic and eight MCP tools are implemented.
+**Implemented (v1.0.0).** Session-tracking logic and eight MCP tools are implemented. Production ready.
 Configuration is handled by `nxm-config`, logging by `nxm-logging`, datasource access
 by `nxm-db`, and MCP server shell by `nxm-mcp-server`.
 
