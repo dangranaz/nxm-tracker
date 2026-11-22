@@ -10,7 +10,7 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `0.8.1` |
+| **Versione** | `0.9.0` |
 | **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
 | **Ultimo tag** | `v0.7.2` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
@@ -164,10 +164,17 @@ nxm-tracker/
 
 ### Priorità media
 
-2. **Espandere repository pattern** — `SqliteSessionRepository` è già implementato; eventualmente aggiungere ulteriori operazioni query o altri backend.
-3. **Verificare il file `LICENSE`** (senza estensione) se richiesto da qualche tool di terze parti.
+2. ✅ **Espandere repository pattern** — completato in v0.9.0
+   - `search_sessions_by_name` — ricerca per nome (case-insensitive)
+   - `list_sessions_by_status` — filtro per stato (open/paused/closed)
+   - `list_sessions_paginated` — paginazione offset/limit
+   - Test di integrazione in `tests/session_test.rs`
+3. ✅ **File `LICENSE` senza estensione** — completato in v0.9.0
+   - Creato `LICENSE` come copia di `LICENSE.md`
 
-Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale e pianificazione futura (v0.8.0, v0.9.0, v1.0.0, post-v1.0).
+### Prossimi passi (v1.0.0, lungo termine)
+
+Vedi `ROADMAP.md` per la roadmap completa.
 
 ---
 

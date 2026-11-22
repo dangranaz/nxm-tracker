@@ -133,6 +133,58 @@ impl SessionRepository for SqliteSessionRepository {
         Ok(rows.into_iter().map(Self::row_to_session).collect())
     }
 
+    fn search_sessions_by_name(&self, name: &str) -> Result<Vec<Session>, TrackerError> {
+        let pool = self.pool()?;
+        let rows = self
+            .block_on(
+                sqlx::query(
+                    r#"SELECT id, name, started_at, ended_at, status, design_phase_complete
+                   FROM sessions WHERE name LIKE ?1 ORDER BY started_at DESC"#,
+                )
+                .bind(format!("%{}%", name))
+                .fetch_all(&pool),
+            )
+            .map_err(|e| TrackerError::Database(e.into()))?;
+        Ok(rows.into_iter().map(Self::row_to_session).collect())
+    }
+
+    fn list_sessions_by_status(&self, status: SessionStatus) -> Result<Vec<Session>, TrackerError> {
+        let pool = self.pool()?;
+        let status_str = Self::status_to_str(status);
+        let rows = self
+            .block_on(
+                sqlx::query(
+                    r#"SELECT id, name, started_at, ended_at, status, design_phase_complete
+                   FROM sessions WHERE status = ?1 ORDER BY started_at DESC"#,
+                )
+                .bind(status_str)
+                .fetch_all(&pool),
+            )
+            .map_err(|e| TrackerError::Database(e.into()))?;
+        Ok(rows.into_iter().map(Self::row_to_session).collect())
+    }
+
+    fn list_sessions_paginated(
+        &self,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<Session>, TrackerError> {
+        let pool = self.pool()?;
+        let rows = self
+            .block_on(
+                sqlx::query(
+                    r#"SELECT id, name, started_at, ended_at, status, design_phase_complete
+                   FROM sessions ORDER BY started_at DESC
+                   LIMIT ?1 OFFSET ?2"#,
+                )
+                .bind(limit)
+                .bind(offset)
+                .fetch_all(&pool),
+            )
+            .map_err(|e| TrackerError::Database(e.into()))?;
+        Ok(rows.into_iter().map(Self::row_to_session).collect())
+    }
+
     fn set_session_status(&self, id: i64, status: SessionStatus) -> Result<bool, TrackerError> {
         let pool = self.pool()?;
         let status_str = Self::status_to_str(status);

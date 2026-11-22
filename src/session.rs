@@ -155,6 +155,23 @@ pub trait SessionRepository: Send + Sync {
     /// Returns all sessions, ordered by `started_at` descending.
     fn list_sessions(&self) -> Result<Vec<Session>, TrackerError>;
 
+    /// Returns sessions whose `name` contains the given substring
+    /// (case-insensitive), ordered by `started_at` descending.
+    fn search_sessions_by_name(&self, name: &str) -> Result<Vec<Session>, TrackerError>;
+
+    /// Returns all sessions with the given status, ordered by
+    /// `started_at` descending.
+    fn list_sessions_by_status(&self, status: SessionStatus) -> Result<Vec<Session>, TrackerError>;
+
+    /// Returns a page of sessions, ordered by `started_at` descending.
+    /// `offset` is the number of sessions to skip, `limit` is the maximum
+    /// number of sessions to return.
+    fn list_sessions_paginated(
+        &self,
+        offset: i64,
+        limit: i64,
+    ) -> Result<Vec<Session>, TrackerError>;
+
     /// Updates the status of a session. Returns `false` if not found.
     fn set_session_status(&self, id: i64, status: SessionStatus) -> Result<bool, TrackerError>;
 

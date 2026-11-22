@@ -1,5 +1,14 @@
 # Changelog for nxm-tracker
 
+## 0.9.0 - 2026-11-22
+- feat(tracker): expand repository query operations
+  - add `SessionRepository::search_sessions_by_name` — case-insensitive name search
+  - add `SessionRepository::list_sessions_by_status` — filter by status (open/paused/closed)
+  - add `SessionRepository::list_sessions_paginated` — offset/limit pagination
+  - add integration tests for all three new queries in `tests/session_test.rs`
+- fix(tracker): add LICENSE file without extension
+  - add `LICENSE` (copy of `LICENSE.md`) for third-party tool compatibility
+
 ## 0.8.1 - 2026-11-22
 - feat(tracker): add trackerUp/trackerDown lifecycle scripts
   - add `scripts/trackerUp` — start nxm-tracker MCP server in background (named pipe + keepalive)
