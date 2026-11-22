@@ -106,9 +106,7 @@ Tutti i quality gate verdi: `build` ✅, `test --all-targets` ✅ (31/31),
 
 | Feature | Descrizione |
 |---------|-------------|
-| Integrazione con `nxm-conductor` / `nxm-cortexdb` | Condivisione stato sessione tra prodotti NXM |
-| Notifiche / webhook | Notifica cambio stato sessione a listener esterni |
-| Metriche / dashboard | Conteggio sessioni aperte, chiuse, in pausa per periodo |
+| Metriche / dashboard | Conteggio sessioni aperte, chiuse, in pausa per periodo (riservato all'edizione Enterprise, branch `ee`) |
 
 ### Da fare quando lo schema diventa complesso (Enterprise Edition, solo branch `ee`)
 

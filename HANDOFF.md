@@ -200,7 +200,7 @@ nxm-tracker/
 
 ### Prossimi passi (post-v1.0, opzionali)
 
-Vedi `ROADMAP.md` per la roadmap completa (integrazione con `nxm-conductor`/`nxm-cortexdb`, notifiche/webhook, metriche/dashboard).
+- **Metriche / dashboard** — Conteggio sessioni aperte, chiuse, in pausa per periodo (riservato all'edizione Enterprise, branch `ee`)
 
 ### Da fare quando lo schema diventa complesso (Enterprise Edition, solo branch `ee`)
 
