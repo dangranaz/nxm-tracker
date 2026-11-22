@@ -1,3 +1,7 @@
 /target
 Cargo.lock
 .superpowers/
+
+# Agente locali (non tracciati nei remoti)
+AGENTS.md
+.pi/
