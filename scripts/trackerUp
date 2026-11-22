@@ -1,0 +1,40 @@
+#!/bin/bash
+set -euo pipefail
+
+# Script: trackerUp
+# Avvia il server MCP nxm-tracker in background.
+# Il binario release deve già esistere in builds/ (eseguire prima scripts/build.sh se necessario).
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+BUILDS_DIR="$PROJECT_DIR/builds"
+BINARY="$BUILDS_DIR/nxm-tracker"
+PID_FILE="$BUILDS_DIR/nxm-tracker.pid"
+LOG_FILE="$BUILDS_DIR/nxm-tracker.log"
+
+echo "==> Avvio nxm-tracker MCP server"
+
+# Se il server è già in esecuzione, non avviarne un altro.
+if [[ -f "$PID_FILE" ]]; then
+    OLD_PID="$(cat "$PID_FILE")"
+    if kill -0 "$OLD_PID" 2>/dev/null; then
+        echo "==> nxm-tracker è già attivo (PID $OLD_PID)"
+        exit 0
+    fi
+    # PID file orfano: rimuovilo.
+    rm -f "$PID_FILE"
+fi
+
+# Se il binario non esiste, costruiscilo.
+if [[ ! -x "$BINARY" ]]; then
+    echo "==> Binario non trovato in $BUILDS_DIR. Eseguo build.sh..."
+    "$SCRIPT_DIR/build.sh"
+fi
+
+# Avvia il server in background (stdio MCP). I log vanno in builds/nxm-tracker.log.
+nohup "$BINARY" > "$LOG_FILE" 2>&1 &
+echo $! > "$PID_FILE"
+
+echo "==> nxm-tracker avviato (PID $(cat "$PID_FILE"))"
+echo "==> Log: $LOG_FILE"
+echo "==> Per fermarlo: ./scripts/trackerDown"
