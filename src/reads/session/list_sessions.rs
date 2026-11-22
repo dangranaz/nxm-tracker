@@ -4,12 +4,12 @@ use crate::domain::Status;
 use crate::reads::session::error::SessionReadError;
 use crate::reads::session::view::SessionView;
 use crate::repo::SqliteRepo;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Lista tutte le sessioni di lavoro, ordinate per `started_at` discendente.
-pub fn list_sessions(db: nxm_db::Db) -> Result<Vec<SessionView>, SessionReadError> {
-    let repo = SqliteRepo::from_database(db);
+pub fn list_sessions(db: sqlx::SqlitePool) -> Result<Vec<SessionView>, SessionReadError> {
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     let rows = repo

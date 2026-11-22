@@ -7,32 +7,27 @@
 use crate::domain::transition::{valid_transitions, Trigger};
 use crate::domain::{ParseStatusError, ParseTriggerError, Status, Transition};
 use crate::repo::{LifecycleRepo, RepoError};
-use nxm_db::Db;
-use sqlx::Row;
+use sqlx::{Row, SqlitePool};
 use tokio::runtime::Runtime;
 
 /// SQLite-backed lifecycle repository.
 pub struct SqliteRepo {
-    db: Db,
+    pool: SqlitePool,
     rt: Runtime,
 }
 
 impl SqliteRepo {
-    /// Builds a repository from an open [`nxm_db::Db`].
-    pub fn from_database(db: nxm_db::Db) -> Self {
+    /// Builds a repository from an existing [`SqlitePool`].
+    pub fn from_pool(pool: SqlitePool) -> Self {
         Self {
-            db,
+            pool,
             rt: Runtime::new().expect("tokio runtime should start"),
         }
     }
 
-    /// Returns the underlying [`nxm_db::Db`] handle.
-    pub fn db(&self) -> &nxm_db::Db {
-        &self.db
-    }
-
-    pub fn pool(&self) -> Result<sqlx::SqlitePool, RepoError> {
-        self.db.sqlite_pool().map_err(RepoError::Db)
+    /// Returns a clone of the underlying connection pool.
+    pub fn pool(&self) -> Result<SqlitePool, RepoError> {
+        Ok(self.pool.clone())
     }
 
     /// Runs an async sqlx future on the repository's tokio runtime.
@@ -44,15 +39,14 @@ impl SqliteRepo {
 impl LifecycleRepo for SqliteRepo {
     fn states(&self) -> Result<Vec<Status>, RepoError> {
         let pool = self.pool()?;
-        let rows = self
-            .block_on(
-                sqlx::query(
-                    "SELECT name, description, is_visible, is_archivable, is_reopenable, sort_order
+        let rows = self.block_on(
+            sqlx::query(
+                "SELECT name, description, is_visible, is_archivable, is_reopenable, sort_order
                  FROM lifecycle_state ORDER BY sort_order",
-                )
-                .fetch_all(&pool),
             )
-            .map_err(|e| RepoError::Query(e.to_string()))?;
+            .fetch_all(&pool),
+        )
+        .map_err(|e| RepoError::Query(e.to_string()))?;
 
         let mut states = Vec::with_capacity(rows.len());
         for row in rows {
@@ -60,8 +54,9 @@ impl LifecycleRepo for SqliteRepo {
                 .try_get("name")
                 .map_err(|e| RepoError::Query(format!("failed to read name: {e}")))?;
             states.push(
-                Status::try_from(name.as_str())
-                    .map_err(|e| RepoError::ParseStatus(name.clone(), e))?,
+                Status::try_from(name.as_str()).map_err(|e| {
+                    RepoError::ParseStatus(name.clone(), e)
+                })?,
             );
         }
         Ok(states)
@@ -69,15 +64,14 @@ impl LifecycleRepo for SqliteRepo {
 
     fn allowed_transitions(&self) -> Result<Vec<Transition>, RepoError> {
         let pool = self.pool()?;
-        let rows = self
-            .block_on(
-                sqlx::query(
-                    "SELECT from_state, to_state, trigger, description
+        let rows = self.block_on(
+            sqlx::query(
+                "SELECT from_state, to_state, trigger, description
                  FROM lifecycle_transition ORDER BY from_state, to_state, trigger",
-                )
-                .fetch_all(&pool),
             )
-            .map_err(|e| RepoError::Query(e.to_string()))?;
+            .fetch_all(&pool),
+        )
+        .map_err(|e| RepoError::Query(e.to_string()))?;
 
         let mut transitions = Vec::with_capacity(rows.len());
         for row in rows {
@@ -95,12 +89,15 @@ impl LifecycleRepo for SqliteRepo {
                 .map_err(|e| RepoError::Query(format!("failed to read description: {e}")))?;
 
             transitions.push(Transition {
-                from: Status::try_from(from.as_str())
-                    .map_err(|e| RepoError::ParseStatus(from.clone(), e))?,
-                to: Status::try_from(to.as_str())
-                    .map_err(|e| RepoError::ParseStatus(to.clone(), e))?,
-                trigger: Trigger::try_from(trigger.as_str())
-                    .map_err(|e| RepoError::ParseTrigger(trigger.clone(), e))?,
+                from: Status::try_from(from.as_str()).map_err(|e| {
+                    RepoError::ParseStatus(from.clone(), e)
+                })?,
+                to: Status::try_from(to.as_str()).map_err(|e| {
+                    RepoError::ParseStatus(to.clone(), e)
+                })?,
+                trigger: Trigger::try_from(trigger.as_str()).map_err(|e| {
+                    RepoError::ParseTrigger(trigger.clone(), e)
+                })?,
                 description,
             });
         }

@@ -8,7 +8,7 @@ use std::time::Instant;
 use crate::domain::action_context::ActionContext;
 use crate::repo::SqliteRepo;
 use crate::writes::error::WriteError;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Marca una sessione come consumata.
@@ -26,7 +26,7 @@ use sqlx::Row;
 /// `WriteError::SignoffRequired` se il signoff è richiesto ma mancante,
 /// `WriteError::Db` per errori di database.
 pub fn mark_consumed(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
     consumed_by: Option<&str>,
     ctx: &ActionContext,
@@ -40,7 +40,7 @@ pub fn mark_consumed(
         "ENTER mark_consumed"
     );
 
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     // Verifica che la sessione esista.

@@ -6,7 +6,7 @@ use crate::domain::action_context::ActionContext;
 use crate::domain::task_status::TaskStatus;
 use crate::repo::SqliteRepo;
 use crate::writes::error::WriteError;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Crea una nuova task con la prima revisione (versione 0).
@@ -26,7 +26,7 @@ use sqlx::Row;
 /// `WriteError::EmptyField` se il titolo è vuoto,
 /// `WriteError::Db` per errori di database.
 pub fn create_task(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
     task_id: i64,
     title: &str,
@@ -47,7 +47,7 @@ pub fn create_task(
         return Err(WriteError::EmptyField { field: "title" });
     }
 
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     // Verifica che la sessione esista.

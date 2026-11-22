@@ -11,7 +11,7 @@ use crate::domain::transition::{is_transition_allowed, Trigger};
 use crate::domain::Status;
 use crate::repo::SqliteRepo;
 use crate::writes::error::WriteError;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Cambia lo stato di una sessione esistente.
@@ -30,7 +30,7 @@ use sqlx::Row;
 /// `WriteError::TransitionNotAllowed` se la transizione non è permessa,
 /// `WriteError::Db` per errori di database.
 pub fn transition_session(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
     from_state: Option<Status>,
     to_state: Status,
@@ -47,7 +47,7 @@ pub fn transition_session(
         "ENTER transition_session"
     );
 
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     // Verifica che la sessione esista.

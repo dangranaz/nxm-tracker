@@ -5,12 +5,12 @@ use super::view::TaskView;
 use crate::domain::task_status::TaskStatus;
 use crate::reads::session::view::SessionView;
 use crate::repo::SqliteRepo;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Lista tutte le task non chiuse (status != done, cancelled).
-pub fn list_open_tasks(db: nxm_db::Db) -> Result<Vec<TaskView>, TaskReadError> {
-    let repo = SqliteRepo::from_database(db);
+pub fn list_open_tasks(db: sqlx::SqlitePool) -> Result<Vec<TaskView>, TaskReadError> {
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     let rows = repo

@@ -3,15 +3,15 @@
 use crate::reads::handoff::error::HandoffReadError;
 use crate::reads::handoff::view::HandoffView;
 use crate::repo::SqliteRepo;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Lista tutte le revisioni di handoff di una sessione, ordinate per versione discendente.
 pub fn list_handoff_revisions(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
 ) -> Result<Vec<HandoffView>, HandoffReadError> {
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     let rows = repo

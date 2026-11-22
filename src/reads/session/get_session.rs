@@ -4,12 +4,12 @@ use crate::domain::Status;
 use crate::reads::session::error::SessionReadError;
 use crate::reads::session::view::SessionView;
 use crate::repo::SqliteRepo;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Legge una sessione per ID.
-pub fn get_session(db: nxm_db::Db, session_id: &str) -> Result<SessionView, SessionReadError> {
-    let repo = SqliteRepo::from_database(db);
+pub fn get_session(db: sqlx::SqlitePool, session_id: &str) -> Result<SessionView, SessionReadError> {
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     let row = repo

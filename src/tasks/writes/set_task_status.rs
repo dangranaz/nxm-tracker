@@ -6,7 +6,7 @@ use crate::domain::action_context::ActionContext;
 use crate::domain::task_status::TaskStatus;
 use crate::repo::SqliteRepo;
 use crate::writes::error::WriteError;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Cambia lo stato di un task (crea una nuova revisione).
@@ -23,7 +23,7 @@ use sqlx::Row;
 /// Restituisce `WriteError::SessionNotFound` o `WriteError::TaskNotFound`
 /// se sessione o task non esistono.
 pub fn set_task_status(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
     task_id: i64,
     status: TaskStatus,
@@ -39,7 +39,7 @@ pub fn set_task_status(
         "ENTER set_task_status"
     );
 
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     // Verifica che sessione e task esistano.

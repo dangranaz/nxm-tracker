@@ -4,12 +4,12 @@ use super::error::TaskReadError;
 use super::view::TaskView;
 use crate::domain::task_status::TaskStatus;
 use crate::repo::SqliteRepo;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Legge l'ultima revisione di un task.
-pub fn get_task(db: nxm_db::Db, session_id: &str, task_id: i64) -> Result<TaskView, TaskReadError> {
-    let repo = SqliteRepo::from_database(db);
+pub fn get_task(db: sqlx::SqlitePool, session_id: &str, task_id: i64) -> Result<TaskView, TaskReadError> {
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     let row = repo

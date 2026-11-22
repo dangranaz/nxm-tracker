@@ -4,15 +4,15 @@ use crate::domain::task_status::TaskStatus;
 use crate::repo::SqliteRepo;
 use crate::tasks::reads::error::TaskReadError;
 use crate::tasks::reads::view::TaskView;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Lista tutte le revisioni di task di una sessione, ordinate per task_id, versione discendente.
 pub fn list_session_tasks(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
 ) -> Result<Vec<TaskView>, TaskReadError> {
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     let rows = repo

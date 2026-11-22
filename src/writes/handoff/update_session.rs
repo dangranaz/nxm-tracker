@@ -9,7 +9,7 @@ use crate::domain::action_context::ActionContext;
 use crate::repo::SqliteRepo;
 use crate::writes::handoff::error::HandoffWriteError;
 use crate::writes::handoff::input::HandoffInput;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Updates a session handoff: inserts a new revision and an audit row.
@@ -29,7 +29,7 @@ use sqlx::Row;
 /// `HandoffWriteError::Db` for database errors,
 /// `HandoffWriteError::Write` for generic write failures.
 pub fn update_session(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
     handoff: &HandoffInput,
     ctx: &ActionContext,
@@ -42,7 +42,7 @@ pub fn update_session(
         "ENTER update_session"
     );
 
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     // Verify session exists.

@@ -7,7 +7,7 @@
 use std::time::Instant;
 
 use crate::repo::SqliteRepo;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Errore tipizzato del prompt registry.
@@ -40,7 +40,7 @@ const VALID_LANGS: &[&str] = &["ita", "eng"];
 ///
 /// Non scrive `audit_log` e non richiede `ActionContext` (metadato leggero).
 pub fn register_prompt(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
     task_no: &str,
     slug: &str,
@@ -62,7 +62,7 @@ pub fn register_prompt(
         });
     }
 
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool().map_err(|e| PromptError::Query(e.to_string()))?;
 
     // Verifica che la sessione esista.

@@ -3,15 +3,15 @@
 use crate::reads::handoff::error::HandoffReadError;
 use crate::reads::handoff::view::HandoffView;
 use crate::repo::SqliteRepo;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Legge l'handoff corrente (versione massima) di una sessione.
 pub fn get_current_handoff(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
 ) -> Result<HandoffView, HandoffReadError> {
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     // Verifica che la sessione esista.

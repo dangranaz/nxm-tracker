@@ -12,6 +12,7 @@ mod error;
 pub mod git_workspace;
 mod logging;
 mod mcp_tools;
+mod mcp_tools_new;
 mod reads;
 mod repo;
 mod session;
@@ -27,6 +28,14 @@ pub use mcp_tools::{
     CloseSessionTool, CreateFeatureSessionTool, CreateSessionTool, GetSessionTool,
     ListFeatureSessionsTool, ListSessionsTool, SetDesignPhaseCompleteTool, UpdateSessionTool,
 };
+pub use mcp_tools_new::{
+    CloseTaskTool, CreateLifecycleSessionTool, CreateTaskTool, GetTaskTool,
+    ListLifecycleStatesTool, ListLifecycleTransitionsTool, ListOpenTasksTool,
+    ListSessionTasksTool, MarkConsumedTool, RegisterPromptTool, ReviseTaskTool,
+    SetTaskStatusTool, TransitionSessionTool,
+};
+pub use mcp_tools_new::UpdateSessionTool as NewUpdateSessionTool;
+pub use repo::{LifecycleRepo, SqliteRepo};
 pub use session::{
     FeatureSession, NewFeatureSession, NewSession, Session, SessionRepository, SessionStatus,
 };

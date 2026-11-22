@@ -7,7 +7,6 @@ use crate::domain::action_context::ActionContext;
 use crate::domain::task_status::TaskStatus;
 use crate::repo::SqliteRepo;
 use crate::writes::error::WriteError;
-use nxm_db::Db;
 use sqlx::Row;
 
 /// Chiude un task (imposta stato `cancelled`).
@@ -23,7 +22,7 @@ use sqlx::Row;
 /// Restituisce `WriteError::SessionNotFound` o `WriteError::TaskNotFound`
 /// se sessione o task non esistono.
 pub fn close_task(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
     task_id: i64,
     ctx: &ActionContext,

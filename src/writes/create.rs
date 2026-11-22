@@ -14,7 +14,7 @@ use crate::domain::Status;
 use crate::git_workspace::{base_branch, create_integration_branch, is_git_repo};
 use crate::repo::SqliteRepo;
 use crate::writes::error::WriteError;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Errore restituito da `create_session` se il nome è vuoto.
@@ -35,7 +35,7 @@ const EMPTY_NAME_ERROR: &str = "name";
 /// `WriteError::EmptyField` se nome o id sono vuoti,
 /// `WriteError::Db` per errori di database.
 pub fn create_session(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
     session_id: &str,
     name: &str,
     ctx: &ActionContext,
@@ -69,7 +69,7 @@ pub fn create_session(
             .map_err(|e| WriteError::Write(e.to_string()))?;
     }
 
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     // Verifica che la sessione non esista già.

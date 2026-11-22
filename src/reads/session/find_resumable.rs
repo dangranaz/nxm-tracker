@@ -7,7 +7,7 @@ use crate::domain::Status;
 use crate::reads::session::error::SessionReadError;
 use crate::reads::session::view::SessionView;
 use crate::repo::SqliteRepo;
-use nxm_db::Db;
+use sqlx::SqlitePool;
 use sqlx::Row;
 
 /// Sessione ripristinabile trovata.
@@ -18,9 +18,9 @@ pub struct ResumableSession {
 
 /// Trova una sessione da riprendere (stato `active` o `onhold`).
 pub fn find_resumable_session(
-    db: nxm_db::Db,
+    db: sqlx::SqlitePool,
 ) -> Result<Option<ResumableSession>, SessionReadError> {
-    let repo = SqliteRepo::from_database(db);
+    let repo = SqliteRepo::from_pool(db);
     let pool = repo.pool()?;
 
     let row = repo
