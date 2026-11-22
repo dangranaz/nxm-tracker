@@ -11,7 +11,7 @@ del lavoro svolto e di quanto resta da implementare.
 |-------|--------|
 | **Crate** | `nxm_tracker` |
 | **Versione** | `1.0.0` |
-| **Ultimo commit** | `0595deb` — merge(gitlab): allinea master con release v1.0.0 |
+| **Ultimo commit** | `383a4ac` — fix(tracker): make build.sh and scripts_test resilient to CARGO_TARGET_DIR and parallel test execution |
 | **Ultimo tag** | `v1.0.0` su entrambi i remote |
 | **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v1.0.0 |
 | **Posizione locale** | `~/AiProjects/nexum/mcpServers/nxm-tracker` |
