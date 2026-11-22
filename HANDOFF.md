@@ -145,6 +145,7 @@ nxm-tracker/
 
 1. **btrfs metadata space** — su questo host i metadati btrfs di `/home` si esauriscono facilmente durante compilazioni pesanti (specialmente `clippy` con `nxm-db` che trascina `sqlx`, `tokio`, `mongodb`). Soluzione temporanea: usare `CARGO_TARGET_DIR=/tmp/...` o `cargo clean` prima di operazioni git.
 2. **LICENSE** — non esiste un file `LICENSE` (senza estensione), solo `LICENSE.md`. Il badge nel README punta a `LICENSE.md`.
+3. **AGENTS.md e .pi/** — non più tracciati da git (aggiunti a `.gitignore`). Sono documenti locali dell'agente, sincronizzati da `~/AiProjects/nexum/docs/configRust/`.
 
 ---
 
@@ -172,9 +173,15 @@ Vedi `ROADMAP.md` per la roadmap completa con release completate, stato attuale 
 
 ## Flusso operativo da seguire
 
-1. Modifiche in `~/AiProjects/nexum/mcpServers/nxm-tracker`
+### Sviluppo (branch `develop`)
+1. Modifiche in `~/AiProjects/nexum/mcpServers/nxm-tracker` su branch `develop`
 2. `cargo test --all-targets`, `cargo clippy --all-targets -- -D warnings`, `cargo fmt --all -- --check`
-3. `git add -A`, `git commit`, `git tag vX.Y.Z`
+3. `git add -A`, `git commit`, `git push origin develop` + `git push gitlab develop`
+
+### Release (branch `master`)
+1. `git checkout master`
+2. `git merge develop --no-ff`
+3. `git tag vX.Y.Z`
 4. `git push origin master` + `git push origin vX.Y.Z`
 5. `git push gitlab master` + `git push gitlab vX.Y.Z`
 6. `gh release create vX.Y.Z ...` (su GitHub)
