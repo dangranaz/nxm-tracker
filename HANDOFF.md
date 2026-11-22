@@ -200,7 +200,12 @@ nxm-tracker/
 
 ### Prossimi passi (post-v1.0, opzionali)
 
-Vedi `ROADMAP.md` per la roadmap completa (integrazione con `nxm-conductor`/`nxm-cortexdb`, notifiche/webhook, export/import, metriche/dashboard).
+Vedi `ROADMAP.md` per la roadmap completa (integrazione con `nxm-conductor`/`nxm-cortexdb`, notifiche/webhook, metriche/dashboard).
+
+### Da fare quando lo schema diventa complesso (Enterprise Edition, solo branch `ee`)
+
+**Export/import sessioni** — Esportazione sessioni in formato JSON/CSV per backup o migrazione.
+Questa funzionalità è riservata all'edizione Enterprise e deve essere implementata solo quando lo schema DB diventerà così complesso da richiedere una conversione del vecchio schema nel nuovo (es. cambi di struttura delle tabelle, aggiunta di nuovi campi obbligatori, migrazione di dati esistenti). Non è prevista per l'edizione pubblica a meno che non si renda necessaria per compatibilità tra versioni dello schema.
 
 ---
 

@@ -108,8 +108,13 @@ Tutti i quality gate verdi: `build` ✅, `test --all-targets` ✅ (31/31),
 |---------|-------------|
 | Integrazione con `nxm-conductor` / `nxm-cortexdb` | Condivisione stato sessione tra prodotti NXM |
 | Notifiche / webhook | Notifica cambio stato sessione a listener esterni |
-| Export/import sessioni | Esportazione sessioni in formato JSON/CSV per backup o migrazione |
 | Metriche / dashboard | Conteggio sessioni aperte, chiuse, in pausa per periodo |
+
+### Da fare quando lo schema diventa complesso (Enterprise Edition, solo branch `ee`)
+
+| Feature | Descrizione |
+|---------|-------------|
+| Export/import sessioni | Esportazione sessioni in formato JSON/CSV per backup o migrazione. Riservata all'edizione Enterprise. Da implementare solo quando lo schema DB diventerà così complesso da richiedere una conversione del vecchio schema nel nuovo (es. cambi di struttura delle tabelle, aggiunta di nuovi campi obbligatori, migrazione di dati esistenti). Non è prevista per l'edizione pubblica a meno che non si renda necessaria per compatibilità tra versioni dello schema.
 
 ---
 
