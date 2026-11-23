@@ -13,9 +13,11 @@ use std::sync::Arc;
 use nxm_mcp_server::mcp::tool::McpTool;
 use nxm_mcp_server::{init_logging, serve, ServerContext};
 use nxm_tracker::{
-    default_migration_set, CloseSessionTool, CreateFeatureSessionTool, CreateSessionTool, Database,
-    GetSessionTool, ListFeatureSessionsTool, ListSessionsTool, SetDesignPhaseCompleteTool,
-    SqliteSessionRepository, TrackerConfig, UpdateSessionTool,
+    default_migration_set, CloseSessionTool, CloseTaskTool, CreateFeatureSessionTool,
+    CreateSessionTool, CreateTaskTool, Database, GetHandoffTool, GetSessionTool, GetTaskReportTool,
+    GetTaskTool, InvalidateTaskTool, ListActivityPlansTool, ListFeatureSessionsTool,
+    ListSessionsTool, ListTasksTool, SetDesignPhaseCompleteTool, SqliteSessionRepository,
+    TrackerConfig, UpdateHandoffTool, UpdateSessionTool,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -56,6 +58,15 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     ctx.register_tool(
         Arc::new(ListFeatureSessionsTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>,
     );
+    ctx.register_tool(Arc::new(GetHandoffTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(UpdateHandoffTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(ListActivityPlansTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(CreateTaskTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(ListTasksTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(GetTaskTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(CloseTaskTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(InvalidateTaskTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
+    ctx.register_tool(Arc::new(GetTaskReportTool::new(Arc::clone(&repo))) as Arc<dyn McpTool>);
 
     tracing::info!(
         target: "nexum::tracker::main",

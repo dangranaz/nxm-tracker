@@ -8,6 +8,7 @@
 
 use crate::database::Database;
 use crate::error::TrackerError;
+use crate::handoff::{ActivityPlan, Handoff};
 use crate::session::{
     FeatureSession, NewFeatureSession, NewSession, Session, SessionRepository, SessionStatus,
 };
@@ -35,13 +36,89 @@ impl SqliteSessionRepository {
         &self.db
     }
 
-    fn pool(&self) -> Result<sqlx::SqlitePool, TrackerError> {
+    pub(crate) fn pool(&self) -> Result<sqlx::SqlitePool, TrackerError> {
         self.db.sqlite_pool().map_err(TrackerError::Database)
     }
 
     /// Runs an async sqlx future on the repository's tokio runtime.
-    fn block_on<F: std::future::Future>(&self, future: F) -> F::Output {
+    pub(crate) fn block_on<F: std::future::Future>(&self, future: F) -> F::Output {
         self.rt.block_on(future)
+    }
+
+    /// Creates a session together with its optional handoff (1:1) and its
+    /// activity-plan items in a single transaction.
+    ///
+    /// Returns the session, the handoff (if `handoff` was provided), and the
+    /// plan items in `position` order.
+    pub fn create_session_full(
+        &self,
+        new: &NewSession,
+        handoff: Option<&str>,
+        plan: &[String],
+    ) -> Result<(Session, Option<Handoff>, Vec<ActivityPlan>), TrackerError> {
+        let pool = self.pool()?;
+        self.block_on(async {
+            let mut tx = pool
+                .begin()
+                .await
+                .map_err(|e| TrackerError::Database(e.into()))?;
+
+            let row = sqlx::query(
+                r#"INSERT INTO sessions (name, started_at, status, design_phase_complete)
+                   VALUES (?1, ?2, 'open', 0)
+                   RETURNING id, name, started_at, ended_at, status, design_phase_complete"#,
+            )
+            .bind(&new.name)
+            .bind(&new.started_at)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(|e| TrackerError::Database(e.into()))?;
+            let session = Self::row_to_session(row);
+            let session_id = session.id.expect("inserted session should have an id");
+
+            let handoff = match handoff {
+                Some(content) => {
+                    let now = chrono::Utc::now().to_rfc3339();
+                    let row = sqlx::query(
+                        r#"INSERT INTO handoffs (session_id, content, updated_at)
+                           VALUES (?1, ?2, ?3)
+                           RETURNING id, session_id, content, updated_at"#,
+                    )
+                    .bind(session_id)
+                    .bind(content)
+                    .bind(&now)
+                    .fetch_one(&mut *tx)
+                    .await
+                    .map_err(|e| TrackerError::Database(e.into()))?;
+                    Some(Self::row_to_handoff(row))
+                }
+                None => None,
+            };
+
+            let mut plans = Vec::with_capacity(plan.len());
+            for (index, description) in plan.iter().enumerate() {
+                let now = chrono::Utc::now().to_rfc3339();
+                let position = (index + 1) as i64;
+                let row = sqlx::query(
+                    r#"INSERT INTO activity_plans (session_id, position, description, created_at)
+                       VALUES (?1, ?2, ?3, ?4)
+                       RETURNING id, session_id, position, description, created_at"#,
+                )
+                .bind(session_id)
+                .bind(position)
+                .bind(description)
+                .bind(&now)
+                .fetch_one(&mut *tx)
+                .await
+                .map_err(|e| TrackerError::Database(e.into()))?;
+                plans.push(Self::row_to_activity_plan(row));
+            }
+
+            tx.commit()
+                .await
+                .map_err(|e| TrackerError::Database(e.into()))?;
+            Ok((session, handoff, plans))
+        })
     }
 
     fn status_to_str(status: SessionStatus) -> &'static str {

@@ -10,10 +10,10 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `1.0.0` |
-| **Ultimo commit** | `d1bb1aa` — docs(tracker): add ROADMAP.md with release history and future milestones |
-| **Ultimo tag** | `v0.7.2` su entrambi i remote |
-| **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v0.7.2 |
+| **Versione** | `1.1.0` |
+| **Ultimo commit** | `2c676ee` — feat(tracker): handoff, activity plan, and execution tasks per session (v1.1.0) |
+| **Ultimo tag** | `v1.1.0` su entrambi i remote |
+| **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v1.1.0 |
 | **Posizione locale** | `~/AiProjects/nexum/mcpServers/nxm-tracker` |
 | **Copia pubblicazione** | `~/AiProjects/dangranaz/nxm-tracker` |
 | **Remote GitHub** | `dangranaz/nxm-tracker` (public) |
@@ -38,7 +38,7 @@ del lavoro svolto e di quanto resta da implementare.
 
 ---
 
-## Pubblic API (v0.6.0)
+## Pubblic API (v1.1.0)
 
 - `product_name() -> &'static str`
 - `TrackerConfig` — `load()`, `load_or_create_from()`, `load_from()`, `save()`, `save_to()`, `server_port()`, `database_url()`, `database_driver()`
@@ -51,14 +51,25 @@ del lavoro svolto e di quanto resta da implementare.
 - `FeatureSession` — `id`, `session_id`, `name`, `description`, `status`, `created_at`
 - `NewSession`, `NewFeatureSession` — input per la creazione
 - `SessionRepository` — trait per persistenza sessioni e feature session
-- `SqliteSessionRepository` — implementazione SQLite sul pool di `nxm-db`
-- MCP tool: `create_session`, `get_session`, `list_sessions`, `update_session`,
-  `close_session`, `set_design_phase_complete`, `create_feature_session`,
-  `list_feature_sessions`
+- `SqliteSessionRepository` — implementazione SQLite sul pool di `nxm-db`;
+  implementa anche `HandoffRepository` e `TaskRepository`, più
+  `create_session_full(new, handoff, plan)` (transazione atomica)
+- `Handoff` (1:1), `ActivityPlan` (1:N), `HandoffRepository`
+  (`get_handoff`, `upsert_handoff`, `list_activity_plans`)
+- `Task`, `TaskStatus` (`open`/`closed`/`invalid`), `TaskReport` (1:1),
+  `NewTask`, `TaskRepository` (`create_task`, `get_task`, `list_tasks`,
+  `list_tasks_by_status`, `close_task`, `invalidate_task`, `get_task_report`)
+- `TrackerError::InvalidTaskStatus`, `TrackerError::TaskNotOpen`
+- MCP tool (17): `create_session` (con `handoff`/`plan` opzionali), `get_session`,
+  `list_sessions`, `update_session`, `close_session`, `set_design_phase_complete`,
+  `create_feature_session`, `list_feature_sessions`, `get_handoff`,
+  `update_handoff`, `list_activity_plans`, `create_task`, `list_tasks`,
+  `get_task`, `close_task` (report obbligatorio), `invalidate_task`,
+  `get_task_report`
 
 ---
 
-## Test (31/31 passati)
+## Test (86/86 passati, di cui 24 nuovi in v1.1.0)
 
 | File | Test |
 |------|------|
@@ -67,14 +78,17 @@ del lavoro svolto e di quanto resta da implementare.
 | `tests/logging_test.rs` | `init_logging_first_wins` |
 | `tests/database_test.rs` | `database_opens_in_temp_directory`, `database_migration_set_applies`, `default_migration_set_has_two_migrations` |
 | `tests/session_test.rs` | `create_and_get_session`, `get_nonexistent_session_returns_none`, `list_sessions_returns_all_ordered`, `set_session_status_changes_status`, `set_session_status_nonexistent_returns_false`, `close_session_sets_ended_at_and_status`, `close_nonexistent_session_returns_false`, `set_design_phase_complete_toggles_flag`, `create_and_list_feature_sessions`, `list_feature_sessions_empty_for_session_without_features`, `feature_session_belongs_to_correct_session` |
-| `tests/mcp_tools_test.rs` | `create_session_tool`, `get_session_tool`, `get_nonexistent_session_tool`, `list_sessions_tool`, `update_session_tool_changes_name_and_status`, `update_session_tool_sets_design_phase_complete`, `update_session_tool_nonexistent`, `close_session_tool`, `close_nonexistent_session_tool`, `set_design_phase_complete_tool`, `create_and_list_feature_sessions_tool` |
+| `tests/mcp_tools_test.rs` | 15 test sui tool sessione/feature session |
+| `tests/handoff_test.rs` | 6 test: `create_session_full` con/senza handoff+plan, upsert handoff, get senza handoff, isolamento piano per sessione |
+| `tests/task_test.rs` | 10 test: CRUD task, filtro per stato, close con report, close doppio → `TaskNotOpen`, invalidate con reason, stati terminali, `TaskStatus` roundtrip |
+| `tests/tracking_tools_test.rs` | 8 test sui nuovi MCP tool handoff/piano/task incl. validazioni (report obbligatorio, task non open, session/task inesistenti) |
 
 ---
 
 ## Qualità gate
 
 - `cargo build` ✅
-- `cargo test --all-targets` ✅ (31/31)
+- `cargo test --all-targets` ✅ (86/86)
 - `cargo clippy --all-targets --all-features -- -D warnings` ✅ (eseguito con `CARGO_TARGET_DIR=/tmp` per evitare esaurimento metadati btrfs)
 - `cargo fmt --all -- --check` ✅
 
@@ -105,16 +119,21 @@ nxm-tracker/
 │   ├── trackerUp            # Avvia nxm-tracker MCP server in background
 │   └── trackerDown          # Ferma nxm-tracker MCP server
 ├── src/
-│   ├── config.rs            # TrackerConfig (nxm-config wrapper)
-│   ├── database.rs          # Database (nxm-db wrapper + default_migration_set)
-│   ├── error.rs             # TrackerError (Config + Logging + Database + InvalidSessionStatus)
-│   ├── git_workspace.rs     # Git workspace helpers (is_git_repo, base_branch, create_integration_branch, sanitize_branch_name)
-│   ├── lib.rs               # Esporta API pubblica
-│   ├── logging.rs           # init_logging() (nxm-logging wrapper)
-│   ├── main.rs              # Entry point: logging → config → db → migration → registra tool MCP → serve
-│   ├── mcp_tools.rs         # 8 MCP tool implementazioni (create/get/list/update/close session, feature session)
-│   ├── session.rs           # Session model: Session, SessionStatus, FeatureSession, SessionRepository trait
-│   └── session_repository.rs# SqliteSessionRepository (nxm-db pool backend)
+│   ├── config.rs             # TrackerConfig (nxm-config wrapper)
+│   ├── database.rs           # Database (nxm-db wrapper + default_migration_set, migration v1–v6)
+│   ├── error.rs              # TrackerError (Config + Logging + Database + InvalidSessionStatus + InvalidTaskStatus + TaskNotOpen)
+│   ├── git_workspace.rs      # Git workspace helpers (is_git_repo, base_branch, create_integration_branch, sanitize_branch_name)
+│   ├── handoff.rs            # Handoff, ActivityPlan, HandoffRepository trait
+│   ├── handoff_repository.rs # impl HandoffRepository su SqliteSessionRepository (upsert via ON CONFLICT)
+│   ├── lib.rs                # Esporta API pubblica
+│   ├── logging.rs            # init_logging() (nxm-logging wrapper)
+│   ├── main.rs               # Entry point: logging → config → db → migration → registra 17 tool MCP → serve
+│   ├── mcp_tools.rs          # Tool MCP sessione + feature session (create_session con handoff/plan)
+│   ├── session.rs            # Session model: Session, SessionStatus, FeatureSession, SessionRepository trait
+│   ├── session_repository.rs # SqliteSessionRepository (nxm-db pool) + create_session_full (transazione)
+│   ├── task.rs               # Task, TaskStatus, TaskReport, NewTask, TaskRepository trait
+│   ├── task_repository.rs    # impl TaskRepository (close_task/invalidate_task in transazione)
+│   └── tracking_tools.rs     # 9 MCP tool handoff/piano/task
 ├── tests/
 │   ├── config_test.rs
 │   ├── database_test.rs
@@ -125,7 +144,10 @@ nxm-tracker/
 │   ├── mcp_tools_test.rs         # MCP tools integration tests (15 test)
 │   ├── scripts_test.rs           # trackerUp/trackerDown (3 test)
 │   ├── session_test.rs           # Session model integration tests (14 test)
-│   └── stdio_test.rs             # Trasporto stdio end-to-end (7 test)
+│   ├── stdio_test.rs             # Trasporto stdio end-to-end (7 test, 17 tool in tools/list)
+│   ├── handoff_test.rs           # Handoff + piano di attività (6 test)
+│   ├── task_test.rs              # Task + report (10 test)
+│   └── tracking_tools_test.rs    # Tool MCP handoff/piano/task (8 test)
 ├── LICENSE               # PolyForm Noncommercial 1.0.0 (senza estensione)
 ├── LICENSE.md            # PolyForm Noncommercial 1.0.0
 ├── README.md             # Aggiornato con banner + licenza
@@ -157,8 +179,7 @@ nxm-tracker/
 ## Problemi noti
 
 1. **btrfs metadata space** — su questo host i metadati btrfs di `/home` si esauriscono facilmente durante compilazioni pesanti (specialmente `clippy` con `nxm-db` che trascina `sqlx`, `tokio`, `mongodb`). Soluzione temporanea: usare `CARGO_TARGET_DIR=/tmp/...` o `cargo clean` prima di operazioni git.
-2. **LICENSE** — non esiste un file `LICENSE` (senza estensione), solo `LICENSE.md`. Il badge nel README punta a `LICENSE.md`.
-3. **AGENTS.md e .pi/** — non più tracciati da git (aggiunti a `.gitignore`). Sono documenti locali dell'agente, sincronizzati da `~/AiProjects/nexum/docs/configRust/`.
+2. **AGENTS.md e .pi/** — non più tracciati da git (aggiunti a `.gitignore`). Sono documenti locali dell'agente, sincronizzati da `~/AiProjects/nexum/docs/configRust/`.
 
 ---
 
@@ -198,9 +219,19 @@ nxm-tracker/
 - Documentazione utente: `docs/user-guide.md`
 - Bump versione a `1.0.0`
 
+### ✅ v1.1.0 completato — handoff, piano ed execution task
+
+- Migration v3–v6: `handoffs` (1:1), `activity_plans` (1:N), `tasks`, `task_reports` (1:1)
+- `create_session` con `handoff` e `plan` opzionali, creazione atomica (`create_session_full`)
+- 9 nuovi MCP tool (17 totali): handoff get/update, piano, task CRUD, `close_task`
+  con report obbligatorio 1:1 (transazione), `invalidate_task` con reason
+- Task: `name` = branch git; stati `open`/`closed`/`invalid` (closed/invalid terminali)
+- 24 nuovi test; quality gate verdi (build, clippy `-D warnings`, fmt, test 86/86)
+- Bump versione a `1.1.0` + CHANGELOG + docs (README, CONTEXT, HANDOFF, ROADMAP, api, architecture, user-guide)
+
 ### Prossimi passi (post-v1.0, opzionali)
 
-- **Metriche / dashboard** — Conteggio sessioni aperte, chiuse, in pausa per periodo (riservato all'edizione Enterprise, branch `ee`)
+Vedi `ROADMAP.md` per la roadmap completa (integrazione con `nxm-conductor`/`nxm-cortexdb`, notifiche/webhook, metriche/dashboard).
 
 ### Da fare quando lo schema diventa complesso (Enterprise Edition, solo branch `ee`)
 

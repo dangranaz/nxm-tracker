@@ -9,14 +9,20 @@ mod config;
 mod database;
 mod error;
 pub mod git_workspace;
+pub mod handoff;
+mod handoff_repository;
 mod logging;
 mod mcp_tools;
 mod session;
 mod session_repository;
+pub mod task;
+mod task_repository;
+mod tracking_tools;
 
 pub use config::TrackerConfig;
 pub use database::{default_migration_set, Database};
 pub use error::TrackerError;
+pub use handoff::{ActivityPlan, Handoff, HandoffRepository};
 pub use logging::init_logging;
 pub use mcp_tools::{
     CloseSessionTool, CreateFeatureSessionTool, CreateSessionTool, GetSessionTool,
@@ -26,6 +32,11 @@ pub use session::{
     FeatureSession, NewFeatureSession, NewSession, Session, SessionRepository, SessionStatus,
 };
 pub use session_repository::SqliteSessionRepository;
+pub use task::{NewTask, Task, TaskReport, TaskRepository, TaskStatus};
+pub use tracking_tools::{
+    CloseTaskTool, CreateTaskTool, GetHandoffTool, GetTaskReportTool, GetTaskTool,
+    InvalidateTaskTool, ListActivityPlansTool, ListTasksTool, UpdateHandoffTool,
+};
 
 /// Returns the canonical product name of this crate.
 ///

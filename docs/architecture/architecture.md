@@ -3,9 +3,8 @@
 ## Panoramica
 
 `nxm-tracker` è un crate Rust (edition 2021) standalone che traccia sessioni di lavoro
-lunghe, multi-giorno, e le sessioni di feature integrate create dopo la fase di design.
-Il crate è strutturato come un MCP server shell ma al momento non espone ancora tool
-MCP (priorità media).
+lunghe, multi-giorno, le sessioni di feature integrate create dopo la fase di design,
+oltre a handoff (1:1), piano di attività (1:N) ed execution task (1:N) per sessione.
 
 Il progetto segue i principi di **deep modules**: interfacce semplici, implementazione
 nascosta, ogni file di produzione sotto le 300 righe, test separati in `tests/`.
@@ -14,14 +13,21 @@ nascosta, ogni file di produzione sotto le 300 righe, test separati in `tests/`.
 
 ```
 nxm-tracker crate
-├── main.rs              # Entry point: logging → config → db → migration
-├── lib.rs               # Esporta API pubblica
-├── config.rs            # TrackerConfig (wrapper su nxm-config)
-├── logging.rs           # init_logging() (wrapper su nxm-logging)
-├── error.rs             # TrackerError (unione degli errori dei sottosistemi)
-├── database.rs          # Database (wrapper su nxm-db) + default_migration_set()
-├── session.rs           # Session, SessionStatus, FeatureSession, SessionRepository trait
-└── session_repository.rs# SqliteSessionRepository (implementazione su nxm-db pool)
+├── main.rs               # Entry point: logging → config → db → migration → tool → serve
+├── lib.rs                # Esporta API pubblica
+├── config.rs             # TrackerConfig (wrapper su nxm-config)
+├── logging.rs            # init_logging() (wrapper su nxm-logging)
+├── error.rs              # TrackerError (unione degli errori dei sottosistemi)
+├── database.rs           # Database (wrapper su nxm-db) + default_migration_set()
+├── session.rs            # Session, SessionStatus, FeatureSession, SessionRepository trait
+├── session_repository.rs # SqliteSessionRepository (impl su nxm-db pool) + create_session_full
+├── handoff.rs            # Handoff, ActivityPlan, HandoffRepository trait
+├── handoff_repository.rs # impl HandoffRepository su SqliteSessionRepository
+├── task.rs               # Task, TaskStatus, TaskReport, NewTask, TaskRepository trait
+├── task_repository.rs    # impl TaskRepository (close_task/invalidate_task in transazione)
+├── git_workspace.rs      # helper git (integration branch)
+├── mcp_tools.rs          # tool MCP sessione + feature session
+└── tracking_tools.rs     # tool MCP handoff / piano / task
 ```
 
 ### Dipendenze
@@ -68,6 +74,46 @@ nxm-tracker crate
 | `status` | TEXT NOT NULL DEFAULT 'open' | Stato della feature session |
 | `created_at` | TEXT NOT NULL | Timestamp creazione (RFC3339) |
 
+### Tabella `handoffs` (migration v3) — 1:1 con la sessione
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INTEGER PK AUTOINCREMENT | Identificativo univoco |
+| `session_id` | INTEGER NOT NULL UNIQUE | FK su `sessions(id)` ON DELETE CASCADE |
+| `content` | TEXT NOT NULL | Testo libero dell'handoff, aggiornato frequentemente |
+| `updated_at` | TEXT NOT NULL | Ultimo aggiornamento (RFC3339) |
+
+### Tabella `activity_plans` (migration v4) — 1:N con la sessione
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INTEGER PK AUTOINCREMENT | Identificativo univoco |
+| `session_id` | INTEGER NOT NULL | FK su `sessions(id)` ON DELETE CASCADE |
+| `position` | INTEGER NOT NULL | Ordine 1-based dello step nel piano |
+| `description` | TEXT NOT NULL | Descrizione dello step |
+| `created_at` | TEXT NOT NULL | Timestamp creazione (RFC3339) |
+
+### Tabella `tasks` (migration v5) — 1:N con la sessione
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INTEGER PK AUTOINCREMENT | Identificativo univoco |
+| `session_id` | INTEGER NOT NULL | FK su `sessions(id)` ON DELETE CASCADE |
+| `name` | TEXT NOT NULL | Nome del task = nome del branch git del task |
+| `status` | TEXT NOT NULL DEFAULT 'open' | `open`, `closed`, `invalid` |
+| `note` | TEXT | Motivazione (es. reason di invalidazione) |
+| `created_at` | TEXT NOT NULL | Timestamp creazione (RFC3339) |
+| `closed_at` | TEXT | Timestamp chiusura (solo se `closed`) |
+
+### Tabella `task_reports` (migration v6) — 1:1 con il task
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INTEGER PK AUTOINCREMENT | Identificativo univoco |
+| `task_id` | INTEGER NOT NULL UNIQUE | FK su `tasks(id)` ON DELETE CASCADE |
+| `content` | TEXT NOT NULL | Report finale obbligatorio alla chiusura |
+| `created_at` | TEXT NOT NULL | Timestamp creazione (RFC3339) |
+
 ## Stati di una work session (`SessionStatus`)
 
 Ogni work session può trovarsi in uno dei tre stati seguenti. Le transizioni
@@ -110,6 +156,26 @@ Open ──→ Paused ──→ Open  (riprendi)
 
 - `Closed` è uno stato terminale: una sessione chiusa non può essere riaperta.
 - `close_session()` imposta `status = 'closed'` e `ended_at = now`.
+
+## Stati di un task (`TaskStatus`)
+
+I task vengono creati dopo la sessione (`create_task`) per eseguire il piano di
+attività e/o la sessione stessa. Il `name` del task è anche il nome del branch git.
+
+| Stato | Valore DB | Descrizione | Transizioni possibili | Operatore MCP |
+|-------|-----------|-------------|----------------------|---------------|
+| `Open` | `open` | Task in attesa di esecuzione. Stato iniziale. | `Closed` (con report obbligatorio), `Invalid` | `create_task`, `close_task`, `invalidate_task` |
+| `Closed` | `closed` | Task completato; ha un report finale 1:1 in `task_reports`. | Nessuna (terminale) | `close_task` |
+| `Invalid` | `invalid` | Task senza più valore (es. superato dall'esito di un altro task). | Nessuna (terminale) | `invalidate_task` |
+
+### Regole di transizione
+
+- `Open → Closed`: solo via `close_task(id, report)` con report non vuoto; il report
+  viene inserito in `task_reports` (1:1) e `closed_at = now`, in una singola
+  transazione atomica.
+- `Open → Invalid`: via `invalidate_task(id, reason?)`; il `reason` opzionale è
+  salvato in `tasks.note`.
+- `Closed`/`Invalid` → nessuna transizione: stati terminali.
 
 ## SessionRepository
 

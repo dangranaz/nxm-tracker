@@ -15,4 +15,10 @@ pub enum TrackerError {
     /// The session status string stored in the database is not recognized.
     #[error("invalid session status: {0}")]
     InvalidSessionStatus(String),
+    /// The task status string stored in the database is not recognized.
+    #[error("invalid task status: {0}")]
+    InvalidTaskStatus(String),
+    /// A task lifecycle operation was attempted on a task that is not `open`.
+    #[error("task {id} is not open (status: {status})")]
+    TaskNotOpen { id: i64, status: String },
 }

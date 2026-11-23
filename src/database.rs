@@ -43,9 +43,11 @@ impl Database {
 
 /// Default migration set for `nxm-tracker` session tracking.
 ///
-/// Creates the `sessions` table used to track long, multi-day work sessions
-/// and the `feature_sessions` table for integrated feature sessions created
-/// after the design phase.
+/// Creates the `sessions` table used to track long, multi-day work sessions,
+/// the `feature_sessions` table for integrated feature sessions created after
+/// the design phase, the `handoffs` (1:1) and `activity_plans` (1:N) tables
+/// attached to each session, and the `tasks` / `task_reports` tables for the
+/// execution tasks created after session creation.
 pub fn default_migration_set() -> Result<MigrationSet, TrackerError> {
     let migrations = vec![
         nxm_db::migrate::Migration::new(
@@ -71,6 +73,54 @@ pub fn default_migration_set() -> Result<MigrationSet, TrackerError> {
                 status TEXT NOT NULL DEFAULT 'open',
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+            );"#,
+        ),
+        nxm_db::migrate::Migration::new(
+            3,
+            "create_handoffs",
+            r#"CREATE TABLE IF NOT EXISTS handoffs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER NOT NULL UNIQUE,
+                content TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+            );"#,
+        ),
+        nxm_db::migrate::Migration::new(
+            4,
+            "create_activity_plans",
+            r#"CREATE TABLE IF NOT EXISTS activity_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER NOT NULL,
+                position INTEGER NOT NULL,
+                description TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+            );"#,
+        ),
+        nxm_db::migrate::Migration::new(
+            5,
+            "create_tasks",
+            r#"CREATE TABLE IF NOT EXISTS tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'open',
+                note TEXT,
+                created_at TEXT NOT NULL,
+                closed_at TEXT,
+                FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+            );"#,
+        ),
+        nxm_db::migrate::Migration::new(
+            6,
+            "create_task_reports",
+            r#"CREATE TABLE IF NOT EXISTS task_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                task_id INTEGER NOT NULL UNIQUE,
+                content TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
             );"#,
         ),
     ];

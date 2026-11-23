@@ -16,7 +16,7 @@ use nxm_mcp_server::server::ServerContext;
 use serde_json::{json, Value};
 
 /// Helper: build a JSON Schema object for tool input.
-fn schema_object(properties: Value, required: Vec<&str>) -> Value {
+pub(crate) fn schema_object(properties: Value, required: Vec<&str>) -> Value {
     json!({
         "type": "object",
         "properties": properties,
@@ -25,7 +25,7 @@ fn schema_object(properties: Value, required: Vec<&str>) -> Value {
 }
 
 /// Helper: extract a required string argument (accepts JSON string or number).
-fn get_str(args: &Value, key: &str) -> Result<String, String> {
+pub(crate) fn get_str(args: &Value, key: &str) -> Result<String, String> {
     match args.get(key) {
         Some(Value::String(s)) => Ok(s.clone()),
         Some(Value::Number(n)) => Ok(n.to_string()),
@@ -35,7 +35,7 @@ fn get_str(args: &Value, key: &str) -> Result<String, String> {
 }
 
 /// Helper: extract an optional string argument.
-fn get_opt_str(args: &Value, key: &str) -> Option<String> {
+pub(crate) fn get_opt_str(args: &Value, key: &str) -> Option<String> {
     args.get(key)
         .and_then(|v| v.as_str())
         .map(|s| s.to_string())
@@ -46,8 +46,34 @@ fn get_opt_bool(args: &Value, key: &str) -> Option<bool> {
     args.get(key).and_then(|v| v.as_bool())
 }
 
+/// Helper: extract an optional array-of-strings argument (empty when absent).
+pub(crate) fn get_str_array(args: &Value, key: &str) -> Result<Vec<String>, String> {
+    match args.get(key) {
+        None => Ok(Vec::new()),
+        Some(Value::Array(items)) => {
+            let mut out = Vec::with_capacity(items.len());
+            for item in items {
+                match item {
+                    Value::String(s) => out.push(s.clone()),
+                    Value::Number(n) => out.push(n.to_string()),
+                    _ => return Err(format!("argument '{key}' must be an array of strings")),
+                }
+            }
+            Ok(out)
+        }
+        Some(_) => Err(format!("argument '{key}' must be an array of strings")),
+    }
+}
+
+/// Helper: extract a required integer argument (accepts JSON number or numeric string).
+pub(crate) fn get_id(args: &Value, key: &str) -> Result<i64, String> {
+    get_str(args, key)?
+        .parse::<i64>()
+        .map_err(|_| format!("argument '{key}' must be an integer"))
+}
+
 /// Helper: validate that a string is non-empty (after trimming whitespace).
-fn validate_non_empty(value: &str, field: &str) -> Result<(), String> {
+pub(crate) fn validate_non_empty(value: &str, field: &str) -> Result<(), String> {
     if value.trim().is_empty() {
         Err(format!("argument '{field}' must not be empty"))
     } else {
@@ -63,7 +89,10 @@ fn validate_rfc3339(value: &str, field: &str) -> Result<(), String> {
 }
 
 /// Helper: validate that a session with the given ID exists.
-fn validate_session_exists(repo: &SqliteSessionRepository, id: i64) -> Result<(), String> {
+pub(crate) fn validate_session_exists(
+    repo: &SqliteSessionRepository,
+    id: i64,
+) -> Result<(), String> {
     match repo.get_session(id).map_err(|e| format!("{e}"))? {
         Some(_) => Ok(()),
         None => Err(format!("session {id} not found")),
@@ -71,7 +100,7 @@ fn validate_session_exists(repo: &SqliteSessionRepository, id: i64) -> Result<()
 }
 
 /// Helper: build a text content result.
-fn text_result(text: String) -> Value {
+pub(crate) fn text_result(text: String) -> Value {
     json!({
         "content": [{"type": "text", "text": text}],
         "isError": false,
@@ -96,6 +125,8 @@ macro_rules! impl_mcp_tool {
     };
 }
 
+pub(crate) use impl_mcp_tool;
+
 // ---------------------------------------------------------------------------
 // CreateSession
 // ---------------------------------------------------------------------------
@@ -118,7 +149,9 @@ impl_mcp_tool!(
         json!({
             "name": { "type": "string", "description": "Session name" },
             "started_at": { "type": "string", "description": "Start timestamp (RFC3339)" },
-            "working_directory": { "type": "string", "description": "Path to a git project (optional). If set, an integration branch is created before the session." }
+            "working_directory": { "type": "string", "description": "Path to a git project (optional). If set, an integration branch is created before the session." },
+            "handoff": { "type": "string", "description": "Handoff description for the session, stored 1:1 and updatable later via update_handoff (optional)" },
+            "plan": { "type": "array", "items": { "type": "string" }, "description": "Activity plan: ordered list of steps for the session (optional)" }
         }),
         vec!["name", "started_at"]
     )
@@ -129,9 +162,17 @@ impl CreateSessionTool {
         let name = get_str(args, "name")?;
         let started_at = get_str(args, "started_at")?;
         let working_directory = get_opt_str(args, "working_directory");
+        let handoff = get_opt_str(args, "handoff");
+        let plan = get_str_array(args, "plan")?;
 
         validate_non_empty(&name, "name")?;
         validate_rfc3339(&started_at, "started_at")?;
+        if let Some(ref h) = handoff {
+            validate_non_empty(h, "handoff")?;
+        }
+        for (i, step) in plan.iter().enumerate() {
+            validate_non_empty(step, &format!("plan[{i}]"))?;
+        }
 
         // If a working directory is provided, ensure it is a git repository and
         // create an integration branch before creating the session.
@@ -144,9 +185,9 @@ impl CreateSessionTool {
 
         let new = NewSession { name, started_at };
 
-        let session = self
+        let (session, _handoff, _plan) = self
             .repo
-            .create_session(&new)
+            .create_session_full(&new, handoff.as_deref(), &plan)
             .map_err(|e| format!("failed to create session: {e}"))?;
 
         Ok(text_result(serde_json::to_string(&session).unwrap()))

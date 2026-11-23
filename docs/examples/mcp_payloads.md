@@ -315,17 +315,193 @@ Lista tutte le feature session di una work session (ordinate per `created_at` di
 
 ---
 
+## 9. `get_handoff`
+
+Legge l'handoff 1:1 di una sessione.
+
+**Request:**
+```json
+{ "session_id": 1 }
+```
+
+**Response (esempio):**
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"id\":1,\"session_id\":1,\"content\":\"Design completato, vedi docs/\",\"updated_at\":\"2026-11-22T09:00:00+01:00\"}"
+    }
+  ],
+  "isError": false
+}
+```
+
+**Response (senza handoff):** `isError: true`, testo `session 1 has no handoff`.
+
+---
+
+## 10. `update_handoff`
+
+Crea o sostituisce l'handoff 1:1 (upsert).
+
+**Request:**
+```json
+{ "session_id": 1, "content": "Task 1 e 2 chiusi, task 3 in corso" }
+```
+
+---
+
+## 11. `list_activity_plans`
+
+Lista i passi del piano ordinati per `position`.
+
+**Request:**
+```json
+{ "session_id": 1 }
+```
+
+**Response (esempio):**
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "[{\"id\":1,\"session_id\":1,\"position\":1,\"description\":\"setup schema DB\",\"created_at\":\"2026-11-22T08:00:00+01:00\"},{\"id\":2,\"session_id\":1,\"position\":2,\"description\":\"scrivi test\",\"created_at\":\"2026-11-22T08:00:00+01:00\"}]"
+    }
+  ],
+  "isError": false
+}
+```
+
+---
+
+## 12. `create_task`
+
+Crea un task di esecuzione (nome = branch git, stato iniziale `open`).
+
+**Request:**
+```json
+{ "session_id": 1, "name": "task/setup-db" }
+```
+
+**Response (esempio):**
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"id\":1,\"session_id\":1,\"name\":\"task/setup-db\",\"status\":\"open\",\"note\":null,\"created_at\":\"2026-11-22T09:05:00+01:00\",\"closed_at\":null}"
+    }
+  ],
+  "isError": false
+}
+```
+
+---
+
+## 13. `list_tasks`
+
+Lista i task di una sessione, filtro opzionale per stato.
+
+**Request:**
+```json
+{ "session_id": 1, "status": "open" }
+```
+
+---
+
+## 14. `get_task`
+
+**Request:**
+```json
+{ "id": 1 }
+```
+
+**Response (non trovato):** `isError: true`, testo `task 9999 not found`.
+
+---
+
+## 15. `close_task`
+
+Chiude un task `open` con report finale **obbligatorio** (salvato 1:1 in `task_reports`).
+
+**Request:**
+```json
+{ "id": 1, "report": "Schema migrato, 42 test verdi" }
+```
+
+**Response (esempio):**
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"id\":1,\"session_id\":1,\"name\":\"task/setup-db\",\"status\":\"closed\",\"note\":null,\"created_at\":\"2026-11-22T09:05:00+01:00\",\"closed_at\":\"2026-11-22T18:00:00+01:00\"}"
+    }
+  ],
+  "isError": false
+}
+```
+
+**Errori:** report mancante/vuoto → `argument 'report' ...`; task non `open` →
+`task 1 is not open (status: closed)`.
+
+---
+
+## 16. `invalidate_task`
+
+Marca un task `open` come `invalid` (terminale), con reason opzionale in `note`.
+
+**Request:**
+```json
+{ "id": 2, "reason": "superato dall'esito del task 1" }
+```
+
+---
+
+## 17. `get_task_report`
+
+Legge il report finale 1:1 di un task.
+
+**Request:**
+```json
+{ "task_id": 1 }
+```
+
+**Response (esempio):**
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"id\":1,\"task_id\":1,\"content\":\"Schema migrato, 42 test verdi\",\"created_at\":\"2026-11-22T18:00:00+01:00\"}"
+    }
+  ],
+  "isError": false
+}
+```
+
+---
+
 ## Flusso completo esempio (cURL-style)
 
 ```bash
 # 1. Crea sessione
-echo '{"name":"Migrazione DB","started_at":"2026-11-20T08:00:00+01:00"}' | nxm-tracker create_session
+ echo '{"name":"Migrazione DB","started_at":"2026-11-20T08:00:00+01:00"}' | nxm-tracker create_session
+
+# 1b. Crea sessione con handoff e piano (v1.1.0)
+echo '{"name":"Migrazione DB","started_at":"2026-11-22T08:00:00+01:00","handoff":"Design approvato","plan":["setup schema","test"]}' | nxm-tracker create_session
 
 # 2. Aggiorna stato e design phase
-echo '{"id":1,"status":"paused","design_phase_complete":true}' | nxm-tracker update_session
+ echo '{"id":1,"status":"paused","design_phase_complete":true}' | nxm-tracker update_session
 
 # 3. Crea feature session
 echo '{"session_id":1,"name":"Script SQL","description":"Script di migrazione"}' | nxm-tracker create_feature_session
+
+# 3b. Crea task e chiudi con report (v1.1.0)
+echo '{"session_id":1,"name":"task/setup-schema"}' | nxm-tracker create_task
+echo '{"id":1,"report":"Schema migrato, test verdi"}' | nxm-tracker close_task
 
 # 4. Chiudi sessione
 echo '{"id":1}' | nxm-tracker close_session

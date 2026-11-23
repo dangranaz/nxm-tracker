@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](LICENSE.md)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-000000?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![MCP](https://img.shields.io/badge/MCP-JSON--RPC%20stdio-5A4FCF)](#mcp-configuration)
-[![Version](https://img.shields.io/badge/version-0.7.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue)](CHANGELOG.md)
 
 **Tracker for long, multi-day work sessions — part of the NXM platform**
 
@@ -37,14 +37,18 @@ Datasource access is provided by [`nxm-db`](https://github.com/dangranaz/nxm-db)
 - **Database:** [`nxm-db`](https://github.com/dangranaz/nxm-db) — SQLite datasource
   with connection pooling and migrations
 - **Current state:** configuration, logging, database access, and session-tracking
-  logic integrated. Eight MCP tools exposed via stdio:
+  logic integrated. Seventeen MCP tools exposed via stdio:
   `create_session`, `get_session`, `list_sessions`, `update_session`,
   `close_session`, `set_design_phase_complete`, `create_feature_session`,
-  `list_feature_sessions`.
+  `list_feature_sessions`, `get_handoff`, `update_handoff`, `list_activity_plans`,
+  `create_task`, `list_tasks`, `get_task`, `close_task`, `invalidate_task`,
+  `get_task_report`.
 - **Public API:** `product_name()`, `TrackerConfig`, `init_logging()`, `Database`,
   `default_migration_set()`, `TrackerError`, `Session`, `SessionStatus`,
   `FeatureSession`, `NewSession`, `NewFeatureSession`, `SessionRepository`,
-  `SqliteSessionRepository`, plus eight MCP tool structs
+  `SqliteSessionRepository`, `Handoff`, `ActivityPlan`, `HandoffRepository`,
+  `Task`, `TaskStatus`, `TaskReport`, `NewTask`, `TaskRepository`, plus seventeen
+  MCP tool structs
 
 </div>
 
@@ -56,17 +60,21 @@ feature sessions are created so the work can be managed correctly across days.
 
 ## Status
 
-**Implemented (v0.7.0).** Session-tracking logic and eight MCP tools are implemented.
+**Implemented (v1.1.0).** Session-tracking logic, handoffs/activity plans, execution
+tasks, and seventeen MCP tools are implemented. Production ready.
 Configuration is handled by `nxm-config`, logging by `nxm-logging`, datasource access
 by `nxm-db`, and MCP server shell by `nxm-mcp-server`.
 
 Public API includes `product_name()`, `TrackerConfig`, `init_logging()`, `Database`,
 `default_migration_set()`, `TrackerError`, `Session`, `SessionStatus`,
 `FeatureSession`, `NewSession`, `NewFeatureSession`, `SessionRepository`,
-`SqliteSessionRepository`, and MCP tool structs:
+`SqliteSessionRepository`, `Handoff`, `ActivityPlan`, `HandoffRepository`,
+`Task`, `TaskStatus`, `TaskReport`, `NewTask`, `TaskRepository`, and MCP tool structs:
 `CreateSessionTool`, `GetSessionTool`, `ListSessionsTool`, `UpdateSessionTool`,
 `CloseSessionTool`, `SetDesignPhaseCompleteTool`, `CreateFeatureSessionTool`,
-`ListFeatureSessionsTool`.
+`ListFeatureSessionsTool`, `GetHandoffTool`, `UpdateHandoffTool`,
+`ListActivityPlansTool`, `CreateTaskTool`, `ListTasksTool`, `GetTaskTool`,
+`CloseTaskTool`, `InvalidateTaskTool`, `GetTaskReportTool`.
 
 ## Configuration
 
@@ -139,8 +147,45 @@ db.migrate(&set)?;
 | `set_design_phase_complete` | Toggle design phase complete flag |
 | `create_feature_session` | Create a feature session linked to a work session |
 | `list_feature_sessions` | List feature sessions for a work session |
+| `get_handoff` | Get the 1:1 handoff of a work session |
+| `update_handoff` | Create/replace the handoff of a work session (upsert) |
+| `list_activity_plans` | List the activity-plan steps of a work session (ordered) |
+| `create_task` | Create an execution task for a work session (name = git branch) |
+| `list_tasks` | List tasks of a work session, optionally filtered by status |
+| `get_task` | Get a task by ID |
+| `close_task` | Close an `open` task — a non-empty final `report` is required (stored 1:1) |
+| `invalidate_task` | Mark an `open` task as `invalid` (optional `reason` stored in `note`) |
+| `get_task_report` | Get the final report attached to a task |
 
 Each tool accepts JSON arguments and returns JSON results with `isError` flag.
+
+`create_session` also accepts two optional arguments:
+
+- `handoff` (string) — the handoff description, stored 1:1 with the session and
+  updatable later via `update_handoff`
+- `plan` (array of strings) — the ordered activity plan of the session
+
+## Handoffs, activity plans, and tasks
+
+Every work session can carry:
+
+- **Handoff (1:1)** — free-form text describing the current handoff state. It is
+  updated frequently via `update_handoff` (upsert on `session_id`).
+- **Activity plan (1:N)** — ordered steps (`position`, `description`), created
+  with the session via the `plan` argument of `create_session`.
+- **Tasks (1:N)** — execution tasks created after the session with `create_task`.
+  A task's `name` is also its git branch name (e.g. `task/setup-db`).
+
+### Task states
+
+| State | DB value | Description |
+|-------|----------|-------------|
+| `Open` | `open` | Task pending execution. Initial state of every new task. |
+| `Closed` | `closed` | Task finished. Requires a mandatory final report (1:1). Terminal. |
+| `Invalid` | `invalid` | Task no longer has value (e.g. superseded by another task's outcome). Terminal. |
+
+Transitions: `Open → Closed` (via `close_task` with `report`), `Open → Invalid`
+(via `invalidate_task`, optional `reason`). `Closed` and `Invalid` are terminal.
 
 ## Session States
 

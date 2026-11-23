@@ -6,10 +6,45 @@
 //! - `trackerDown` fermi il server e rimuova il PID file
 
 use std::process::Command;
+use std::thread;
+use std::time::Duration;
 
 const PROJECT_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const BUILDS_DIR: &str = "builds";
 const PID_FILE: &str = "builds/nxm-tracker.pid";
+const KEEPALIVE_FILE: &str = "builds/nxm-tracker.keepalive";
+
+/// Pulizia completa di `builds/`: uccide eventuali processi nxm-tracker
+/// e keepalive residui (left-over da altri test binari eseguiti in
+/// parallelo con `--all-targets`) e rimuove tutti i file di supporto.
+/// Rende i test resilienti a contaminazioni inter-binario.
+fn cleanup_builds() {
+    // Uccidi il server tramite PID file se presente.
+    if let Some(pid) = read_pid() {
+        let _ = Command::new("kill").args(["-9", &pid.to_string()]).status();
+    }
+    // Uccidi il keepalive tramite il suo PID file se presente.
+    let keepalive_path = format!("{PROJECT_DIR}/{KEEPALIVE_FILE}");
+    if let Ok(kpid_str) = std::fs::read_to_string(&keepalive_path) {
+        if let Ok(kpid) = kpid_str.trim().parse::<u32>() {
+            let _ = Command::new("kill")
+                .args(["-9", &kpid.to_string()])
+                .status();
+        }
+    }
+    // Rimuovi tutti i file di supporto residui.
+    for file in &[
+        "nxm-tracker.pid",
+        "nxm-tracker.keepalive",
+        "nxm-tracker.stdin",
+        "nxm-tracker.log",
+        "nxm-tracker",
+    ] {
+        let _ = std::fs::remove_file(format!("{PROJECT_DIR}/builds/{file}"));
+    }
+    // Breve attesa per permettere ai processi di terminare e alle pipe di rilasciarsi.
+    thread::sleep(Duration::from_millis(300));
+}
 
 fn run_script(name: &str) -> std::process::Output {
     Command::new(format!("{PROJECT_DIR}/scripts/{name}"))
@@ -45,6 +80,8 @@ fn ensure_binary_built() {
 
 #[test]
 fn tracker_up_starts_server_and_creates_pid_file() {
+    // Pulizia completa di residui da altri test binari (--all-targets).
+    cleanup_builds();
     // Pulizia eventuale di esecuzioni precedenti.
     let _ = run_script("trackerDown");
 
@@ -90,6 +127,8 @@ fn tracker_up_starts_server_and_creates_pid_file() {
 
 #[test]
 fn tracker_down_without_pid_file_is_not_an_error() {
+    // Pulizia completa di residui da altri test binari (--all-targets).
+    cleanup_builds();
     // Rimuovi eventuali residui.
     let _ = run_script("trackerDown");
     let pid_path = format!("{PROJECT_DIR}/{PID_FILE}");
@@ -107,6 +146,8 @@ fn tracker_down_without_pid_file_is_not_an_error() {
 
 #[test]
 fn tracker_up_when_already_running_is_idempotent() {
+    // Pulizia completa di residui da altri test binari (--all-targets).
+    cleanup_builds();
     let _ = run_script("trackerDown");
     ensure_binary_built();
 
