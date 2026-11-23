@@ -59,6 +59,13 @@ con altri prodotti NXM.
 - Documented security best practices: input validation, secret handling, dependency auditing, no `unsafe` code, data protection
 - Documented MCP tools security behavior
 
+### v1.1.0 — 2026-11-22 — Handoff, piano di attività ed execution task
+- Migration v3–v6: `handoffs` (1:1), `activity_plans` (1:N), `tasks`, `task_reports` (1:1)
+- `create_session` accetta `handoff` (stringa) e `plan` (array) opzionali; creazione atomica in transazione (`create_session_full`)
+- 9 nuovi MCP tool: `get_handoff`, `update_handoff`, `list_activity_plans`, `create_task`, `list_tasks`, `get_task`, `close_task`, `invalidate_task`, `get_task_report` (17 totali)
+- Task: `name` = branch git; stati `open`/`closed`/`invalid`; `close_task` richiede report obbligatorio (1:1, transazione atomica); `invalidate_task` con reason in `note`
+- Nuovi trait `HandoffRepository` / `TaskRepository` + modelli; 24 nuovi test
+
 ### v0.7.1 — 2026-11-21 — Documentazione stati sessione
 - `docs/api/api.md` — riferimento API pubblica con esempi
 - `docs/architecture/architecture.md` — struttura moduli, flusso avvio, schema DB, tabella stati sessione
@@ -102,7 +109,7 @@ Tutti i quality gate verdi: `build` ✅, `test --all-targets` ✅ (31/31),
 | Documentazione utente | Guida all'uso dei tool MCP da client esterni | `docs/user-guide.md` o sezione in `README.md` |
 | Gestione errori migliorata | Distinzione errori di business vs errori di sistema | Tutti i tool restituiscono `isError=true` con messaggio descrittivo |
 
-### Post-v1.0 — Integrazione piattaforma NXM
+### Post-v1.1 — Integrazione piattaforma NXM
 
 | Feature | Descrizione |
 |---------|-------------|

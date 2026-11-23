@@ -1,5 +1,30 @@
 # Changelog for nxm-tracker
 
+## 1.1.0 - 2026-11-22
+- feat(tracker): handoff, activity plan, and execution tasks per session
+  - new migrations v3–v6: `handoffs` (1:1 with `sessions`, UNIQUE `session_id`),
+    `activity_plans` (1:N, ordered by `position`), `tasks` (`name` = git branch
+    name, `status` open|closed|invalid, `note`, `closed_at`), `task_reports`
+    (1:1 with `tasks`, UNIQUE `task_id`)
+  - `create_session` accepts optional `handoff` (string) and `plan` (array of
+    steps); session + handoff + plan items are created in one transaction via
+    `SqliteSessionRepository::create_session_full`
+  - new models/traits: `Handoff`, `ActivityPlan`, `HandoffRepository`
+    (`get_handoff`, `upsert_handoff`, `list_activity_plans`), `Task`, `TaskStatus`,
+    `TaskReport`, `NewTask`, `TaskRepository` (`create_task`, `get_task`,
+    `list_tasks`, `list_tasks_by_status`, `close_task`, `invalidate_task`,
+    `get_task_report`)
+  - new errors: `TrackerError::InvalidTaskStatus`, `TrackerError::TaskNotOpen`
+  - `close_task` is transactional: only `open` tasks can be closed, and a
+    non-empty final `report` is mandatory (stored 1:1 in `task_reports`)
+  - `invalidate_task` marks an `open` task as `invalid` (terminal), optionally
+    recording a `reason` in `note`
+  - 9 new MCP tools: `get_handoff`, `update_handoff`, `list_activity_plans`,
+    `create_task`, `list_tasks`, `get_task`, `close_task`, `invalidate_task`,
+    `get_task_report` (17 tools total)
+  - new tests: `tests/handoff_test.rs` (6), `tests/task_test.rs` (10),
+    `tests/tracking_tools_test.rs` (8)
+
 ## 1.0.0 - 2026-11-22
 - feat(tracker): input validation for all MCP tools
   - validate non-empty names for `create_session` and `create_feature_session`

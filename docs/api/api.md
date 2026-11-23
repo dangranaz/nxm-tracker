@@ -1,4 +1,4 @@
-# API pubblica — `nxm-tracker` v0.6.0
+# API pubblica — `nxm-tracker` v1.1.0
 
 ## Funzioni di livello superiore
 
@@ -72,6 +72,10 @@ Wrapper attorno a [`nxm_db::Db`] per l'accesso al datasource SQLite.
 Restituisce il set di migration predefinito:
 - v1: `create_sessions`
 - v2: `create_feature_sessions` (con FK su `sessions(id)`)
+- v3: `create_handoffs` (1:1 con `sessions`, `session_id` UNIQUE)
+- v4: `create_activity_plans` (1:N con `sessions`)
+- v5: `create_tasks` (1:N con `sessions`)
+- v6: `create_task_reports` (1:1 con `tasks`, `task_id` UNIQUE)
 
 ---
 
@@ -84,7 +88,9 @@ Enumerazione degli errori del crate:
 | `Config(nxm_config::ConfigError)` | Errore configurazione |
 | `Logging(nxm_logging::LoggingError)` | Errore inizializzazione logging |
 | `Database(nxm_db::DbError)` | Errore datasource |
-| `InvalidSessionStatus(String)` | Status string non riconosciuta nel DB |
+| `InvalidSessionStatus(String)` | Status sessione non riconosciuto nel DB |
+| `InvalidTaskStatus(String)` | Status task non riconosciuto nel DB |
+| `TaskNotOpen { id, status }` | Operazione lifecycle su task non `open` |
 
 ---
 
@@ -144,14 +150,97 @@ Tutte le operazioni che accettano un `id` restituiscono `false` se l'entità non
 
 ## `SqliteSessionRepository`
 
-Implementazione di [`SessionRepository`] su SQLite.
+Implementazione di [`SessionRepository`], [`HandoffRepository`] e [`TaskRepository`]
+su SQLite.
 
 | Metodo | Descrizione |
 |--------|-------------|
 | `from_database(db: Database) -> Self` | Costruisce da [`crate::Database`] |
 | `db(&self) -> &nxm_db::Db` | Restituisce l'handle sottostante |
+| `create_session_full(new, handoff, plan)` | Crea sessione + handoff (1:1, opzionale) + piano (1:N) in una transazione |
 
-Le query sqlx (async) vengono eseguite su un runtime tokio per-istanza, così il trait rimane sincrono.
+Le query sqlx (async) vengono eseguite su un runtime tokio per-istanza, così i trait rimangono sincroni.
+
+---
+
+## Handoff e piano di attività (`handoff`)
+
+### `Handoff` (1:1 con la sessione)
+
+| Campo | Tipo | Descrizione |
+|-------|------|-------------|
+| `id` | `Option<i64>` | ID assegnato dal DB |
+| `session_id` | `i64` | FK alla work session (UNIQUE) |
+| `content` | `String` | Testo libero dell'handoff, aggiornato frequentemente |
+| `updated_at` | `String` | Ultimo aggiornamento (RFC3339) |
+
+### `ActivityPlan` (1:N con la sessione)
+
+| Campo | Tipo | Descrizione |
+|-------|------|-------------|
+| `id` | `Option<i64>` | ID assegnato dal DB |
+| `session_id` | `i64` | FK alla work session |
+| `position` | `i64` | Ordine 1-based dello step |
+| `description` | `String` | Descrizione dello step |
+| `created_at` | `String` | Timestamp creazione (RFC3339) |
+
+### `HandoffRepository` (trait)
+
+| Metodo | Descrizione |
+|--------|-------------|
+| `get_handoff(&self, session_id: i64) -> Result<Option<Handoff>, TrackerError>` | Handoff della sessione, `None` se assente |
+| `upsert_handoff(&self, session_id: i64, content: &str) -> Result<Handoff, TrackerError>` | Crea o sostituisce l'handoff (1:1), aggiorna `updated_at` |
+| `list_activity_plans(&self, session_id: i64) -> Result<Vec<ActivityPlan>, TrackerError>` | Step del piano ordinati per `position` |
+
+---
+
+## Task di esecuzione (`task`)
+
+### `TaskStatus`
+
+Enum: `Open`, `Closed`, `Invalid`. Serializza come stringhe minuscole
+(`"open"`, `"closed"`, `"invalid"`). Transizioni: `Open → Closed` (con report
+obbligatorio), `Open → Invalid`; `Closed`/`Invalid` terminali.
+
+### `Task`
+
+| Campo | Tipo | Descrizione |
+|-------|------|-------------|
+| `id` | `Option<i64>` | ID assegnato dal DB |
+| `session_id` | `i64` | FK alla work session |
+| `name` | `String` | Nome del task = nome del branch git del task |
+| `status` | `TaskStatus` | Stato del task |
+| `note` | `Option<String>` | Nota (es. reason di invalidazione) |
+| `created_at` | `String` | Timestamp creazione (RFC3339) |
+| `closed_at` | `Option<String>` | Timestamp chiusura (solo se `Closed`) |
+
+### `TaskReport` (1:1 con il task)
+
+| Campo | Tipo | Descrizione |
+|-------|------|-------------|
+| `id` | `Option<i64>` | ID assegnato dal DB |
+| `task_id` | `i64` | FK al task (UNIQUE) |
+| `content` | `String` | Report finale, obbligatorio alla chiusura |
+| `created_at` | `String` | Timestamp creazione (RFC3339) |
+
+### `NewTask`
+
+| Campo | Tipo |
+|-------|------|
+| `session_id` | `i64` |
+| `name` | `String` (anche nome del branch git) |
+
+### `TaskRepository` (trait)
+
+| Metodo | Descrizione |
+|--------|-------------|
+| `create_task(&self, new: &NewTask) -> Result<Task, TrackerError>` | Nuovo task in stato `open` |
+| `get_task(&self, id: i64) -> Result<Option<Task>, TrackerError>` | Task per ID |
+| `list_tasks(&self, session_id: i64) -> Result<Vec<Task>, TrackerError>` | Tutti i task della sessione (created_at DESC) |
+| `list_tasks_by_status(&self, session_id: i64, status: TaskStatus) -> Result<Vec<Task>, TrackerError>` | Task filtrati per stato |
+| `close_task(&self, id: i64, report: &str) -> Result<Option<Task>, TrackerError>` | Chiude un task `open` con report obbligatorio (transazione atomica); `None` se non trovato, `TaskNotOpen` se non `open` |
+| `invalidate_task(&self, id: i64, reason: Option<&str>) -> Result<Option<Task>, TrackerError>` | Task `open` → `invalid`, con reason opzionale in `note` |
+| `get_task_report(&self, task_id: i64) -> Result<Option<TaskReport>, TrackerError>` | Report finale del task |
 
 ---
 

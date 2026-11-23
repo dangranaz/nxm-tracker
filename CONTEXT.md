@@ -36,10 +36,24 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
   - `FeatureSession` — integrated feature session post-design phase
   - `NewSession`, `NewFeatureSession` — creation input structs
   - `SessionRepository` — trait for session/feature session persistence
-  - `SqliteSessionRepository` — SQLite implementation on `nxm-db` pool
-  - MCP tools: `CreateSessionTool`, `GetSessionTool`, `ListSessionsTool`,
+  - `SqliteSessionRepository` — SQLite implementation on `nxm-db` pool; also
+    implements `HandoffRepository` and `TaskRepository`, plus
+    `create_session_full(new, handoff, plan)` (session + handoff + plan in one
+    transaction)
+  - `Handoff` (1:1 per session), `ActivityPlan` (1:N), `HandoffRepository`
+    (`get_handoff`, `upsert_handoff`, `list_activity_plans`)
+  - `Task`, `TaskStatus` (`open`/`closed`/`invalid`), `TaskReport` (1:1),
+    `NewTask`, `TaskRepository` (`create_task`, `get_task`, `list_tasks`,
+    `list_tasks_by_status`, `close_task` (transactional, report mandatory),
+    `invalidate_task`, `get_task_report`)
+  - `TrackerError::InvalidTaskStatus`, `TrackerError::TaskNotOpen`
+  - MCP tools (17): `CreateSessionTool`, `GetSessionTool`, `ListSessionsTool`,
     `UpdateSessionTool`, `CloseSessionTool`, `SetDesignPhaseCompleteTool`,
-    `CreateFeatureSessionTool`, `ListFeatureSessionsTool`
+    `CreateFeatureSessionTool`, `ListFeatureSessionsTool`, `GetHandoffTool`,
+    `UpdateHandoffTool`, `ListActivityPlansTool`, `CreateTaskTool`, `ListTasksTool`,
+    `GetTaskTool`, `CloseTaskTool`, `InvalidateTaskTool`, `GetTaskReportTool`
+  - `create_session` accepts optional `handoff` (string) and `plan` (array of
+    steps); task `name` is also the task's git branch name
 - Binary initializes logging, loads configuration, opens database, applies migrations,
   registers MCP tools, and serves on stdio via `nxm-mcp-server` shell.
 - Tests in `tests/config_test.rs` (config integration), `tests/logging_test.rs`
@@ -49,7 +63,9 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
   (MCP tools integration, 15 tests), `tests/stdio_test.rs` (stdio end-to-end,
   7 tests), `tests/scripts_test.rs` (trackerUp/trackerDown lifecycle, 3 tests),
   and `tests/examples_test.rs` (example files verification, 4 tests), and
-  `tests/git_workspace_test.rs` (git workspace helpers, 10 tests).
+  `tests/git_workspace_test.rs` (git workspace helpers, 10 tests),
+  `tests/handoff_test.rs` (6 tests), `tests/task_test.rs` (10 tests),
+  `tests/tracking_tools_test.rs` (8 tests).
 - `SECURITY.md` — security policy with supported versions, vulnerability reporting process, disclosure timeline, security best practices
 
 ## Project layout
@@ -65,7 +81,12 @@ Rules: canonical in `~/AiProjects/nexum/docs/configRust/`, mirrored in `.pi/rule
 
 ## Next increment
 
-✅ v1.0.0 rilasciato (Production ready): validazione input MCP, test end-to-end stdio, guida utente (`docs/user-guide.md`), gestione errori migliorata. Tag `v1.0.0` su entrambi i remote e release GitHub pubblicata. Prossimo incremento: post-v1.0 (integrazione con nxm-conductor/nxm-cortexdb, notifiche webhook, metriche).
+✅ v1.0.0 rilasciato (Production ready). ✅ v1.1.0: handoff 1:1 + piano di
+attività alla creazione della sessione, execution task (nome = branch git) con
+stati `open`/`closed`/`invalid`, report finale obbligatorio 1:1 alla chiusura
+del task (`close_task`), `invalidate_task` per task non più validi; 9 nuovi MCP
+tool (17 totali), migration v3–v6, 24 nuovi test. Prossimo incremento: post-v1.0
+(integrazione con nxm-conductor/nxm-cortexdb, notifiche webhook, metriche).
 
 L'esportazione/importazione sessioni (export/import) è riservata all'edizione Enterprise e deve essere implementata solo quando lo schema DB diventerà così complesso da richiedere una conversione del vecchio schema nel nuovo. Vedi `docs/ee/` sul branch `ee` per la documentazione Enterprise Edition.
 

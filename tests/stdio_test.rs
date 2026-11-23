@@ -104,7 +104,7 @@ fn stdio_initialize_returns_protocol_and_server_info() -> Result<(), Box<dyn std
 }
 
 #[test]
-fn stdio_tools_list_returns_eight_tools() -> Result<(), Box<dyn std::error::Error>> {
+fn stdio_tools_list_returns_seventeen_tools() -> Result<(), Box<dyn std::error::Error>> {
     let (child, mut writer, mut reader) = if let Ok(t) = spawn_server() {
         t
     } else {
@@ -120,11 +120,11 @@ fn stdio_tools_list_returns_eight_tools() -> Result<(), Box<dyn std::error::Erro
     let response = send_and_receive(&mut writer, &mut reader, request)?;
 
     // tools/list restituisce gli schemi JSON Schema (senza i nomi degli tool).
-    // Verifichiamo che ci siano 8 schemi (uno per tool).
+    // Verifichiamo che ci siano 17 schemi (uno per tool).
     let required_count = response.matches("\"required\"").count();
     assert_eq!(
-        required_count, 8,
-        "tools/list dovrebbe restituire 8 schemi di tool, trovati {required_count}. Risposta: {response}"
+        required_count, 17,
+        "tools/list dovrebbe restituire 17 schemi di tool, trovati {required_count}. Risposta: {response}"
     );
     assert!(
         response.contains("\"tools\""),

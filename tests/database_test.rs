@@ -49,11 +49,19 @@ fn database_migration_set_applies() {
 }
 
 #[test]
-fn default_migration_set_has_two_migrations() {
+fn default_migration_set_has_six_migrations() {
     let set = default_migration_set().expect("default migration set should be valid");
-    assert_eq!(set.migrations().len(), 2);
+    assert_eq!(set.migrations().len(), 6);
     assert_eq!(set.migrations()[0].version, 1);
     assert_eq!(set.migrations()[0].name, "create_sessions");
     assert_eq!(set.migrations()[1].version, 2);
     assert_eq!(set.migrations()[1].name, "create_feature_sessions");
+    assert_eq!(set.migrations()[2].version, 3);
+    assert_eq!(set.migrations()[2].name, "create_handoffs");
+    assert_eq!(set.migrations()[3].version, 4);
+    assert_eq!(set.migrations()[3].name, "create_activity_plans");
+    assert_eq!(set.migrations()[4].version, 5);
+    assert_eq!(set.migrations()[4].name, "create_tasks");
+    assert_eq!(set.migrations()[5].version, 6);
+    assert_eq!(set.migrations()[5].name, "create_task_reports");
 }
