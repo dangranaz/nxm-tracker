@@ -10,10 +10,10 @@ del lavoro svolto e di quanto resta da implementare.
 | Campo | Valore |
 |-------|--------|
 | **Crate** | `nxm_tracker` |
-| **Versione** | `1.1.0` (in sviluppo su `master`) |
-| **Ultimo commit** | `383a4ac` — fix(tracker): make build.sh and scripts_test resilient to CARGO_TARGET_DIR and parallel test execution |
-| **Ultimo tag** | `v1.0.0` su entrambi i remote |
-| **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v1.0.0 |
+| **Versione** | `1.1.0` |
+| **Ultimo commit** | `2c676ee` — feat(tracker): handoff, activity plan, and execution tasks per session (v1.1.0) |
+| **Ultimo tag** | `v1.1.0` su entrambi i remote |
+| **Ultima release GitHub** | https://github.com/dangranaz/nxm-tracker/releases/tag/v1.1.0 |
 | **Posizione locale** | `~/AiProjects/nexum/mcpServers/nxm-tracker` |
 | **Copia pubblicazione** | `~/AiProjects/dangranaz/nxm-tracker` |
 | **Remote GitHub** | `dangranaz/nxm-tracker` (public) |
